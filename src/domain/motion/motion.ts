@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { Vector3 } from '@/core/schema/primitives'
+import { Vector3, isZeroVector } from '@/core/schema/primitives'
 import type { ValidationIssue } from '@/core/validation/types'
 
 /** CORE_OBJECT_SCHEMA_V1.md #14 Motion-ready properties. */
@@ -23,10 +23,6 @@ export const MotionType = z.enum([
 ])
 export type MotionType = z.infer<typeof MotionType>
 
-/**
- * Capability/type compatibility table (work order #14 requires a test for
- * "invalid motion capability/type combination").
- */
 export const ALLOWED_MOTION_TYPES_BY_CAPABILITY: Record<
   MotionCapability,
   MotionType[]
@@ -83,16 +79,44 @@ export const Motion = z.object({
 })
 export type Motion = z.infer<typeof Motion>
 
-/** Blocking rule (work order #6): invalid motion capability/type combination. */
+/** Blocking motion-ready validation. */
 export function validateMotionStructure(motion: Motion): ValidationIssue[] {
   const issues: ValidationIssue[] = []
   const allowedTypes = ALLOWED_MOTION_TYPES_BY_CAPABILITY[motion.capability]
+
   if (!allowedTypes.includes(motion.type)) {
     issues.push({
       path: 'motion.type',
       message: `Motion type "${motion.type}" is not valid for capability "${motion.capability}". Allowed: ${allowedTypes.join(', ')}.`,
     })
   }
+
+  if (motion.type === 'rotation' || motion.type === 'translation') {
+    if (isZeroVector(motion.axisVectorLocal)) {
+      issues.push({
+        path: 'motion.axisVectorLocal',
+        message: `${motion.type} motion requires a non-zero axisVectorLocal.`,
+      })
+    }
+  }
+
+  if (motion.type === 'rotation' && motion.allowedRotationAxes.length === 0) {
+    issues.push({
+      path: 'motion.allowedRotationAxes',
+      message: 'Rotation motion requires at least one allowed rotation axis.',
+    })
+  }
+
+  if (
+    motion.type === 'translation' &&
+    motion.allowedTranslationAxes.length === 0
+  ) {
+    issues.push({
+      path: 'motion.allowedTranslationAxes',
+      message: 'Translation motion requires at least one allowed translation axis.',
+    })
+  }
+
   if (motion.capability === 'static') {
     if (motion.enabled) {
       issues.push({
@@ -100,13 +124,52 @@ export function validateMotionStructure(motion: Motion): ValidationIssue[] {
         message: 'Static objects must have motion.enabled = false.',
       })
     }
-    if (motion.allowedTranslationAxes.length > 0 || motion.allowedRotationAxes.length > 0) {
+    if (
+      motion.allowedTranslationAxes.length > 0 ||
+      motion.allowedRotationAxes.length > 0
+    ) {
       issues.push({
         path: 'motion.allowedTranslationAxes',
         message: 'Static objects must declare no allowed motion axes.',
       })
     }
   }
+
+  const limits = motion.limits
+  if (
+    limits.minimumPositionMm !== null &&
+    limits.maximumPositionMm !== null &&
+    limits.minimumPositionMm > limits.maximumPositionMm
+  ) {
+    issues.push({
+      path: 'motion.limits.minimumPositionMm',
+      message: 'minimumPositionMm must not exceed maximumPositionMm.',
+    })
+  }
+  if (
+    limits.minimumAngleDeg !== null &&
+    limits.maximumAngleDeg !== null &&
+    limits.minimumAngleDeg > limits.maximumAngleDeg
+  ) {
+    issues.push({
+      path: 'motion.limits.minimumAngleDeg',
+      message: 'minimumAngleDeg must not exceed maximumAngleDeg.',
+    })
+  }
+
+  if (!motion.availableStates.includes(motion.initialState)) {
+    issues.push({
+      path: 'motion.initialState',
+      message: 'initialState must be included in availableStates.',
+    })
+  }
+  if (!motion.availableStates.includes(motion.homeState)) {
+    issues.push({
+      path: 'motion.homeState',
+      message: 'homeState must be included in availableStates.',
+    })
+  }
+
   return issues
 }
 

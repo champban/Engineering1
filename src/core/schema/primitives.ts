@@ -38,9 +38,8 @@ export type DimensionSource = z.infer<typeof DimensionSource>
  * A dimension value that may be unresolved.
  *
  * `value` is `null` whenever the dimension is not yet known -- it must never
- * be `0` to mean "unknown". When `status` is `verified` or `estimated`,
- * `value` must be present and, if the field represents a physical extent,
- * positive.
+ * be `0` to mean "unknown". Cross-field status/value consistency is enforced
+ * by the engineering validation layer.
  */
 export const DimensionValue = z.object({
   value: z.number().nullable(),
@@ -72,7 +71,7 @@ export const Quaternion = z.tuple([
 ])
 export type Quaternion = z.infer<typeof Quaternion>
 
-/** Returns true when a dimension/mass value is "known" (resolved). */
+/** Returns true when a dimension/mass value is resolved. */
 export function isResolved(
   entry: { value: number | null; status: DimensionStatus } | null | undefined,
 ): boolean {
@@ -94,6 +93,14 @@ export function vectorLength(v: Vector3): number {
 
 export function dotProduct(a: Vector3, b: Vector3): number {
   return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
+}
+
+export function crossProduct(a: Vector3, b: Vector3): Vector3 {
+  return [
+    a[1] * b[2] - a[2] * b[1],
+    a[2] * b[0] - a[0] * b[2],
+    a[0] * b[1] - a[1] * b[0],
+  ]
 }
 
 export function isZeroVector(v: Vector3, epsilon = 1e-9): boolean {

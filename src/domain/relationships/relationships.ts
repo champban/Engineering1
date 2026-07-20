@@ -1,21 +1,14 @@
 import { z } from 'zod'
+import { isZeroVector } from '@/core/schema/primitives'
 import type { ValidationIssue } from '@/core/validation/types'
 
-/**
- * DYNAMIC_RELATIONSHIP_SCHEMA_V1.md #4 Supported relationship types.
- * The work order (#9) requires this subset at minimum; the full mechanical,
- * transport, structural, and control/inspection vocabulary from the schema
- * document is included so later phases are not blocked.
- */
 export const RelationshipType = z.enum([
-  // Mechanical power
   'drives',
   'transmitsPowerTo',
   'rotates',
   'coupledTo',
   'gearCoupledTo',
   'beltCoupledTo',
-  // Product transport
   'carries',
   'follows',
   'feeds',
@@ -25,12 +18,10 @@ export const RelationshipType = z.enum([
   'indexes',
   'pushes',
   'blocks',
-  // Structural and load
   'supports',
   'mountedOn',
   'attachedTo',
   'loads',
-  // Control and inspection
   'detects',
   'tracks',
   'rejects',
@@ -40,13 +31,8 @@ export const RelationshipType = z.enum([
 ])
 export type RelationshipType = z.infer<typeof RelationshipType>
 
-/** Relationship types that require a rotational axis + pivot on the source object. */
 export const ROTATIONAL_RELATIONSHIP_TYPES: RelationshipType[] = ['rotates']
-
-/** Relationship types that require the source (transporter) to declare a path. */
 export const PATH_FOLLOWING_RELATIONSHIP_TYPES: RelationshipType[] = ['follows']
-
-/** Relationship types that require a support/contact definition. */
 export const CARRIES_RELATIONSHIP_TYPES: RelationshipType[] = ['carries']
 
 export const RelationshipValidationStatus = z.object({
@@ -67,12 +53,9 @@ export const Relationship = z.object({
   enabled: z.boolean(),
   status: z.enum(['configured', 'draft', 'disabled']),
   parameters: z.record(z.string(), z.unknown()).default({}),
-  /** Present only for rotational relationships (work order blocking rule). */
   axisVectorLocal: z.tuple([z.number(), z.number(), z.number()]).optional(),
   pivotLocalMm: z.tuple([z.number(), z.number(), z.number()]).optional(),
-  /** Present only for path-following relationships. */
   pathId: z.string().optional(),
-  /** Present only for carries relationships. */
   supportContactIds: z.array(z.string()).optional(),
   validation: RelationshipValidationStatus,
 })
@@ -83,33 +66,85 @@ export interface RelationshipGraphObject {
   connectorIds: string[]
 }
 
-/**
- * Blocking validation rules, DYNAMIC_RELATIONSHIP_SCHEMA_V1.md #18 and work
- * order #9/#14:
- * - relationship references a missing object
- * - connector references are invalid
- * - a rotational relationship has no valid axis or pivot
- * - a path-following relationship has no path
- * - a carries relationship has no support/contact definition
- */
+/** Validate conditions that do not require the complete project object graph. */
+export function validateRelationshipStructure(
+  relationship: Relationship,
+  ownerObjectId?: string,
+): ValidationIssue[] {
+  const issues: ValidationIssue[] = []
+  const path = `relationships.${relationship.relationshipId}`
+
+  if (ownerObjectId && relationship.sourceObjectId !== ownerObjectId) {
+    issues.push({
+      path: `${path}.sourceObjectId`,
+      message: `Outbound relationship source "${relationship.sourceObjectId}" must match owning object "${ownerObjectId}".`,
+    })
+  }
+
+  if (relationship.sourceObjectId === relationship.targetObjectId) {
+    issues.push({
+      path: `${path}.targetObjectId`,
+      message: 'Relationship source and target must not be the same object.',
+    })
+  }
+
+  if (ROTATIONAL_RELATIONSHIP_TYPES.includes(relationship.type)) {
+    if (!relationship.axisVectorLocal || !relationship.pivotLocalMm) {
+      issues.push({
+        path: `${path}.axisVectorLocal`,
+        message: `Rotational relationship "${relationship.relationshipId}" requires both axisVectorLocal and pivotLocalMm.`,
+      })
+    } else if (isZeroVector(relationship.axisVectorLocal)) {
+      issues.push({
+        path: `${path}.axisVectorLocal`,
+        message: `Rotational relationship "${relationship.relationshipId}" requires a non-zero axisVectorLocal.`,
+      })
+    }
+  }
+
+  if (
+    PATH_FOLLOWING_RELATIONSHIP_TYPES.includes(relationship.type) &&
+    !relationship.pathId?.trim()
+  ) {
+    issues.push({
+      path: `${path}.pathId`,
+      message: `Path-following relationship "${relationship.relationshipId}" requires a pathId.`,
+    })
+  }
+
+  if (
+    CARRIES_RELATIONSHIP_TYPES.includes(relationship.type) &&
+    (!relationship.supportContactIds ||
+      relationship.supportContactIds.length === 0)
+  ) {
+    issues.push({
+      path: `${path}.supportContactIds`,
+      message: `"carries" relationship "${relationship.relationshipId}" requires at least one support/contact definition.`,
+    })
+  }
+
+  return issues
+}
+
+/** Validate object and connector references using the complete project graph. */
 export function validateRelationship(
   relationship: Relationship,
   knownObjects: Map<string, RelationshipGraphObject>,
 ): ValidationIssue[] {
-  const issues: ValidationIssue[] = []
-
+  const issues = validateRelationshipStructure(relationship)
+  const path = `relationships.${relationship.relationshipId}`
   const source = knownObjects.get(relationship.sourceObjectId)
   const target = knownObjects.get(relationship.targetObjectId)
 
   if (!source) {
     issues.push({
-      path: `relationships.${relationship.relationshipId}.sourceObjectId`,
+      path: `${path}.sourceObjectId`,
       message: `Relationship "${relationship.relationshipId}" references missing source object "${relationship.sourceObjectId}".`,
     })
   }
   if (!target) {
     issues.push({
-      path: `relationships.${relationship.relationshipId}.targetObjectId`,
+      path: `${path}.targetObjectId`,
       message: `Relationship "${relationship.relationshipId}" references missing target object "${relationship.targetObjectId}".`,
     })
   }
@@ -120,7 +155,7 @@ export function validateRelationship(
     !source.connectorIds.includes(relationship.sourceConnectorId)
   ) {
     issues.push({
-      path: `relationships.${relationship.relationshipId}.sourceConnectorId`,
+      path: `${path}.sourceConnectorId`,
       message: `Source connector "${relationship.sourceConnectorId}" does not exist on object "${relationship.sourceObjectId}".`,
     })
   }
@@ -130,38 +165,9 @@ export function validateRelationship(
     !target.connectorIds.includes(relationship.targetConnectorId)
   ) {
     issues.push({
-      path: `relationships.${relationship.relationshipId}.targetConnectorId`,
+      path: `${path}.targetConnectorId`,
       message: `Target connector "${relationship.targetConnectorId}" does not exist on object "${relationship.targetObjectId}".`,
     })
-  }
-
-  if (ROTATIONAL_RELATIONSHIP_TYPES.includes(relationship.type)) {
-    const hasAxis = !!relationship.axisVectorLocal
-    const hasPivot = !!relationship.pivotLocalMm
-    if (!hasAxis || !hasPivot) {
-      issues.push({
-        path: `relationships.${relationship.relationshipId}.axisVectorLocal`,
-        message: `Rotational relationship "${relationship.relationshipId}" of type "${relationship.type}" requires both axisVectorLocal and pivotLocalMm.`,
-      })
-    }
-  }
-
-  if (PATH_FOLLOWING_RELATIONSHIP_TYPES.includes(relationship.type)) {
-    if (!relationship.pathId) {
-      issues.push({
-        path: `relationships.${relationship.relationshipId}.pathId`,
-        message: `Path-following relationship "${relationship.relationshipId}" of type "${relationship.type}" requires a pathId.`,
-      })
-    }
-  }
-
-  if (CARRIES_RELATIONSHIP_TYPES.includes(relationship.type)) {
-    if (!relationship.supportContactIds || relationship.supportContactIds.length === 0) {
-      issues.push({
-        path: `relationships.${relationship.relationshipId}.supportContactIds`,
-        message: `"carries" relationship "${relationship.relationshipId}" requires at least one support/contact definition.`,
-      })
-    }
   }
 
   return issues
@@ -171,5 +177,7 @@ export function validateRelationshipGraph(
   relationships: Relationship[],
   knownObjects: Map<string, RelationshipGraphObject>,
 ): ValidationIssue[] {
-  return relationships.flatMap((r) => validateRelationship(r, knownObjects))
+  return relationships.flatMap((relationship) =>
+    validateRelationship(relationship, knownObjects),
+  )
 }

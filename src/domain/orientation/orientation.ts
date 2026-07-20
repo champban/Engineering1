@@ -2,6 +2,7 @@ import { z } from 'zod'
 import {
   Vector3,
   approxEqual,
+  crossProduct,
   dotProduct,
   isZeroVector,
   vectorLength,
@@ -93,41 +94,90 @@ export const Orientation = z.object({
 })
 export type Orientation = z.infer<typeof Orientation>
 
-/**
- * Blocking orientation validation (PRODUCT_ORIENTATION_SCHEMA_V1.md #17,
- * work order #6):
- * - Zero forward or up vector.
- * - Forward and up vectors are not sufficiently independent (approximately
- *   orthogonal).
- * - Released product has unknown mode or status.
- */
+function validateDirectionVector(
+  path: string,
+  vector: Vector3,
+): ValidationIssue[] {
+  if (isZeroVector(vector)) {
+    return [{ path, message: `${path.split('.').at(-1)} must not be a zero vector.` }]
+  }
+
+  const length = vectorLength(vector)
+  if (!approxEqual(length, 1, 0.05)) {
+    return [
+      {
+        path,
+        message: `${path.split('.').at(-1)} must be a unit direction vector; length is ${length.toFixed(4)}.`,
+      },
+    ]
+  }
+
+  return []
+}
+
+function orthogonalityIssue(
+  firstPath: string,
+  first: Vector3,
+  secondPath: string,
+  second: Vector3,
+): ValidationIssue | null {
+  if (isZeroVector(first) || isZeroVector(second)) return null
+  const cosine = dotProduct(first, second) / (vectorLength(first) * vectorLength(second))
+  if (approxEqual(cosine, 0, 0.05)) return null
+  return {
+    path: secondPath,
+    message: `${firstPath.split('.').at(-1)} and ${secondPath.split('.').at(-1)} must be approximately orthogonal.`,
+  }
+}
+
+/** Blocking orientation-vector validation. */
 export function validateOrientationStructure(
   orientation: Orientation,
 ): ValidationIssue[] {
   const issues: ValidationIssue[] = []
-  const { forwardVectorLocal: forward, upVectorLocal: up } = orientation
+  const forward = orientation.forwardVectorLocal
+  const up = orientation.upVectorLocal
+  const right = orientation.rightVectorLocal
 
-  if (isZeroVector(forward)) {
-    issues.push({
-      path: 'orientation.forwardVectorLocal',
-      message: 'forwardVectorLocal must not be a zero vector.',
-    })
-  }
-  if (isZeroVector(up)) {
-    issues.push({
-      path: 'orientation.upVectorLocal',
-      message: 'upVectorLocal must not be a zero vector.',
-    })
+  issues.push(
+    ...validateDirectionVector('orientation.forwardVectorLocal', forward),
+    ...validateDirectionVector('orientation.upVectorLocal', up),
+    ...validateDirectionVector('orientation.rightVectorLocal', right),
+  )
+
+  for (const issue of [
+    orthogonalityIssue(
+      'orientation.forwardVectorLocal',
+      forward,
+      'orientation.upVectorLocal',
+      up,
+    ),
+    orthogonalityIssue(
+      'orientation.forwardVectorLocal',
+      forward,
+      'orientation.rightVectorLocal',
+      right,
+    ),
+    orthogonalityIssue(
+      'orientation.upVectorLocal',
+      up,
+      'orientation.rightVectorLocal',
+      right,
+    ),
+  ]) {
+    if (issue) issues.push(issue)
   }
 
-  if (!isZeroVector(forward) && !isZeroVector(up)) {
-    const cosine =
-      dotProduct(forward, up) / (vectorLength(forward) * vectorLength(up))
-    if (!approxEqual(cosine, 0, 0.05)) {
+  if (!isZeroVector(forward) && !isZeroVector(up) && !isZeroVector(right)) {
+    const expectedRight = crossProduct(forward, up)
+    const alignment =
+      dotProduct(expectedRight, right) /
+      (vectorLength(expectedRight) * vectorLength(right))
+    if (alignment < 0.95) {
       issues.push({
-        path: 'orientation.upVectorLocal',
+        path: 'orientation.rightVectorLocal',
         message:
-          'forwardVectorLocal and upVectorLocal must be approximately orthogonal.',
+          'rightVectorLocal must be consistent with the right-handed forward × up orientation basis.',
       })
     }
   }
@@ -135,19 +185,28 @@ export function validateOrientationStructure(
   return issues
 }
 
+function isResolvedLabel(value: string): boolean {
+  const normalized = value.trim().toLowerCase()
+  return normalized !== '' && normalized !== 'n/a' && normalized !== 'unknown'
+}
+
 export function isOrientationResolvedForRelease(
   orientation: Orientation,
 ): boolean {
-  return orientation.mode !== 'unknown' && orientation.status !== 'unknown'
+  return (
+    orientation.mode !== 'unknown' &&
+    orientation.status !== 'unknown' &&
+    orientation.source !== 'unknown' &&
+    orientation.confidence > 0 &&
+    isResolvedLabel(orientation.faceUp) &&
+    isResolvedLabel(orientation.contactFace) &&
+    isResolvedLabel(orientation.leadingEdge) &&
+    isResolvedLabel(orientation.laneId) &&
+    validateOrientationStructure(orientation).length === 0
+  )
 }
 
-/**
- * PRODUCT_ORIENTATION_SCHEMA_V1.md #8 Projected dimensions.
- *
- * Preliminary 2D footprint projection for a rectangular product with local
- * length `lengthMm` and width `widthMm`, at in-plane rotation `thetaDeg`
- * relative to the flow direction (0deg = lengthwise, 90deg = crosswise).
- */
+/** Preliminary 2D footprint projection for a rectangular product. */
 export function projectedLengthAlongFlowMm(
   lengthMm: number,
   widthMm: number,
@@ -166,22 +225,19 @@ export function projectedWidthAcrossFlowMm(
   return Math.abs(lengthMm * Math.sin(theta)) + Math.abs(widthMm * Math.cos(theta))
 }
 
-/**
- * PRODUCT_ORIENTATION_SCHEMA_V1.md #9 Pitch and capacity dependency.
- *
- * `pitch = projectedLengthAlongFlow + targetGap`
- */
+/** `pitch = projectedLengthAlongFlow + targetGap`. */
 export function effectivePitchMm(
   projectedLengthAlongFlowMmValue: number,
   targetGapMm: number,
 ): number {
+  if (projectedLengthAlongFlowMmValue < 0 || targetGapMm < 0) return 0
   return projectedLengthAlongFlowMmValue + targetGapMm
 }
 
-/** Nominal single-lane throughput, PRODUCT_ORIENTATION_SCHEMA_V1.md #9. */
+/** Nominal single-lane throughput. */
 export function productsPerMinute(beltSpeedMps: number, pitchMm: number): number {
   const pitchM = pitchMm / 1000
-  if (pitchM <= 0) return 0
+  if (beltSpeedMps <= 0 || pitchM <= 0) return 0
   return (beltSpeedMps / pitchM) * 60
 }
 
@@ -202,17 +258,30 @@ export interface OrientationToleranceResult {
   failures: string[]
 }
 
-/**
- * PRODUCT_ORIENTATION_SCHEMA_V1.md #11 Orientation requirements at machine
- * interfaces: evaluate pass/fail against a machine acceptance window.
- */
+/** Absolute shortest circular angular distance in degrees, in the range 0..180. */
+export function shortestAngularDeltaDeg(aDeg: number, bDeg: number): number {
+  const signed = ((aDeg - bDeg + 180) % 360 + 360) % 360 - 180
+  return Math.abs(signed)
+}
+
+/** Evaluate a machine-interface orientation acceptance window. */
 export function evaluateOrientationTolerance(
   input: OrientationToleranceCheckInput,
 ): OrientationToleranceResult {
   const failures: string[] = []
 
-  const rotationDelta = Math.abs(
-    input.rotationRelativeToFlowDeg - input.targetRotationRelativeToFlowDeg,
+  for (const [name, value] of Object.entries({
+    rotationToleranceDeg: input.rotationToleranceDeg,
+    skewToleranceDeg: input.skewToleranceDeg,
+    tiltToleranceDeg: input.tiltToleranceDeg,
+    lateralOffsetToleranceMm: input.lateralOffsetToleranceMm,
+  })) {
+    if (value < 0) failures.push(`${name} must not be negative`)
+  }
+
+  const rotationDelta = shortestAngularDeltaDeg(
+    input.rotationRelativeToFlowDeg,
+    input.targetRotationRelativeToFlowDeg,
   )
   if (rotationDelta > input.rotationToleranceDeg) {
     failures.push(

@@ -1,5 +1,11 @@
 import { z } from 'zod'
-import { DimensionValue, isResolved } from '@/core/schema/primitives'
+import {
+  DimensionValue,
+  Vector3,
+  isResolved,
+  isZeroVector,
+} from '@/core/schema/primitives'
+import { toMillimetres } from '@/core/validation/units'
 import type { ShapeType } from './geometry'
 import type { ValidationIssue } from '@/core/validation/types'
 
@@ -36,44 +42,108 @@ export const Dimensions = z.object({
   boundingLength: dim,
   boundingWidth: dim,
   boundingHeight: dim,
+  profileReference: z.string().optional(),
+  revolutionAxis: Vector3.optional(),
   customParameterReference: z.string().optional(),
   boundingBox: BoundingBox,
 })
 export type Dimensions = z.infer<typeof Dimensions>
 
-/**
- * Required-parameter table from CORE_OBJECT_SCHEMA_V1.md #8, "Required
- * parameters by shape". `innerDiameter` and `wallThickness` are alternatives
- * for hollow shapes, handled specially below.
- */
-export const REQUIRED_DIMENSIONS_BY_SHAPE: Record<ShapeType, (keyof Dimensions)[]> = {
+const DIMENSION_VALUE_KEYS = [
+  'length',
+  'width',
+  'height',
+  'cornerRadius',
+  'diameter',
+  'outerDiameter',
+  'innerDiameter',
+  'wallThickness',
+  'baseDiameter',
+  'topDiameter',
+  'majorDiameter',
+  'minorDiameter',
+  'profileBoundingWidth',
+  'profileBoundingHeight',
+  'extrusionLength',
+  'boundingLength',
+  'boundingWidth',
+  'boundingHeight',
+] as const
+
+type DimensionValueKey = (typeof DIMENSION_VALUE_KEYS)[number]
+
+/** Required numeric parameters by shape. */
+export const REQUIRED_DIMENSIONS_BY_SHAPE: Record<
+  ShapeType,
+  DimensionValueKey[]
+> = {
   box: ['length', 'width', 'height'],
   rounded_box: ['length', 'width', 'height', 'cornerRadius'],
   cylinder: ['diameter', 'length'],
-  hollow_cylinder: ['outerDiameter', 'length'], // + innerDiameter or wallThickness
+  hollow_cylinder: ['outerDiameter', 'length'],
   sphere: ['diameter'],
   hemisphere: ['diameter'],
   cone: ['baseDiameter', 'height'],
   truncated_cone: ['baseDiameter', 'topDiameter', 'height'],
-  pipe: ['outerDiameter', 'length'], // + innerDiameter or wallThickness
+  pipe: ['outerDiameter', 'length'],
   torus: ['majorDiameter', 'minorDiameter'],
-  extruded_profile: ['profileBoundingWidth', 'profileBoundingHeight', 'extrusionLength'],
+  extruded_profile: [
+    'profileBoundingWidth',
+    'profileBoundingHeight',
+    'extrusionLength',
+  ],
   revolved_profile: [],
   mesh_scan: ['boundingLength', 'boundingWidth', 'boundingHeight'],
   custom: ['boundingLength', 'boundingWidth', 'boundingHeight'],
 }
 
 const HOLLOW_SHAPES: ShapeType[] = ['hollow_cylinder', 'pipe']
+const RESOLVED_STATUSES = new Set(['verified', 'estimated'])
+const UNRESOLVED_STATUSES = new Set(['unknown', 'pending', 'not_applicable'])
 
-/**
- * Structural/draft validation for shape-dependent dimensions.
- *
- * Blocking rules enforced here (work order #6, CORE_OBJECT_SCHEMA_V1.md #8):
- * - Applicable diameter/required fields may not be absent.
- * - Outer diameter must exceed inner diameter.
- * - Known length/width/height/diameter/radius/thickness must be positive.
- * - Unknown values must use `null`, never `0`.
- */
+/** Draft validation for every supplied dimension value, not only required ones. */
+function validateDimensionEntry(
+  key: DimensionValueKey,
+  entry: z.infer<typeof DimensionValue>,
+): ValidationIssue[] {
+  const issues: ValidationIssue[] = []
+  const path = `dimensions.${key}`
+
+  if (RESOLVED_STATUSES.has(entry.status) && entry.value === null) {
+    issues.push({
+      path: `${path}.value`,
+      message: `${key} is marked ${entry.status} but has no numeric value.`,
+    })
+  }
+
+  if (UNRESOLVED_STATUSES.has(entry.status) && entry.value !== null) {
+    issues.push({
+      path: `${path}.value`,
+      message: `${key} is marked ${entry.status}; unresolved values must use null.`,
+    })
+  }
+
+  if (entry.value !== null && entry.value <= 0) {
+    issues.push({
+      path: `${path}.value`,
+      message:
+        entry.value === 0
+          ? `${key} must be positive; use null with status "unknown" instead of 0.`
+          : `${key} must be positive when known; ${entry.value} is not valid.`,
+    })
+  }
+
+  if (RESOLVED_STATUSES.has(entry.status) && entry.source === 'unknown') {
+    issues.push({
+      path: `${path}.source`,
+      message: `${key} is resolved but its source is still unknown.`,
+    })
+  }
+
+  return issues
+}
+
+/** Structural/draft validation for shape-dependent dimensions. */
 export function validateDimensionStructure(
   shapeType: ShapeType,
   dimensions: Dimensions,
@@ -81,25 +151,25 @@ export function validateDimensionStructure(
   const issues: ValidationIssue[] = []
   const required = REQUIRED_DIMENSIONS_BY_SHAPE[shapeType] ?? []
 
+  for (const key of DIMENSION_VALUE_KEYS) {
+    const entry = dimensions[key]
+    if (entry) issues.push(...validateDimensionEntry(key, entry))
+  }
+
   for (const key of required) {
-    const entry = dimensions[key] as z.infer<typeof DimensionValue> | undefined
-    if (!entry) {
+    if (!dimensions[key]) {
       issues.push({
-        path: `dimensions.${String(key)}`,
-        message: `${String(key)} is required for shape "${shapeType}" and must not be absent.`,
-      })
-      continue
-    }
-    if (entry.value !== null && entry.value <= 0) {
-      issues.push({
-        path: `dimensions.${String(key)}.value`,
-        message: `${String(key)} must be positive when known; ${entry.value} is not valid.`,
+        path: `dimensions.${key}`,
+        message: `${key} is required for shape "${shapeType}" and must not be absent.`,
       })
     }
-    if (entry.value === 0) {
+  }
+
+  for (const [key, value] of Object.entries(dimensions.boundingBox)) {
+    if (value !== null && value <= 0) {
       issues.push({
-        path: `dimensions.${String(key)}.value`,
-        message: `${String(key)} uses 0 to represent an unknown value; use null with status "unknown" instead.`,
+        path: `dimensions.boundingBox.${key}`,
+        message: `${key} must be positive when known; ${value} is not valid.`,
       })
     }
   }
@@ -117,18 +187,47 @@ export function validateDimensionStructure(
 
     const outer = dimensions.outerDiameter
     const inner = dimensions.innerDiameter
-    if (
-      outer?.value !== undefined &&
-      outer?.value !== null &&
-      inner?.value !== undefined &&
-      inner?.value !== null &&
-      outer.value <= inner.value
-    ) {
+    const wall = dimensions.wallThickness
+    const outerMm = outer ? toMillimetres(outer.value, outer.unit) : null
+    const innerMm = inner ? toMillimetres(inner.value, inner.unit) : null
+    const wallMm = wall ? toMillimetres(wall.value, wall.unit) : null
+
+    if (outerMm !== null && innerMm !== null && outerMm <= innerMm) {
       issues.push({
         path: 'dimensions.outerDiameter',
-        message: `outerDiameter (${outer.value}) must exceed innerDiameter (${inner.value}).`,
+        message: `outerDiameter (${outerMm} mm) must exceed innerDiameter (${innerMm} mm).`,
       })
     }
+
+    if (outerMm !== null && wallMm !== null && wallMm * 2 >= outerMm) {
+      issues.push({
+        path: 'dimensions.wallThickness',
+        message:
+          'wallThickness must be less than half of outerDiameter for a hollow shape.',
+      })
+    }
+  }
+
+  if (shapeType === 'revolved_profile') {
+    if (!dimensions.profileReference?.trim()) {
+      issues.push({
+        path: 'dimensions.profileReference',
+        message: 'revolved_profile requires a profileReference.',
+      })
+    }
+    if (!dimensions.revolutionAxis || isZeroVector(dimensions.revolutionAxis)) {
+      issues.push({
+        path: 'dimensions.revolutionAxis',
+        message: 'revolved_profile requires a non-zero revolutionAxis.',
+      })
+    }
+  }
+
+  if (shapeType === 'custom' && !dimensions.customParameterReference?.trim()) {
+    issues.push({
+      path: 'dimensions.customParameterReference',
+      message: 'custom shape requires a customParameterReference.',
+    })
   }
 
   return issues
@@ -141,13 +240,28 @@ export function areRequiredDimensionsResolved(
 ): boolean {
   const required = REQUIRED_DIMENSIONS_BY_SHAPE[shapeType] ?? []
   for (const key of required) {
-    const entry = dimensions[key] as z.infer<typeof DimensionValue> | undefined
-    if (!isResolved(entry)) return false
+    if (!isResolved(dimensions[key])) return false
   }
+
   if (HOLLOW_SHAPES.includes(shapeType)) {
-    const innerOk = isResolved(dimensions.innerDiameter)
-    const wallOk = isResolved(dimensions.wallThickness)
-    if (!innerOk && !wallOk) return false
+    if (
+      !isResolved(dimensions.innerDiameter) &&
+      !isResolved(dimensions.wallThickness)
+    ) {
+      return false
+    }
   }
+
+  if (shapeType === 'revolved_profile') {
+    if (!dimensions.profileReference?.trim()) return false
+    if (!dimensions.revolutionAxis || isZeroVector(dimensions.revolutionAxis)) {
+      return false
+    }
+  }
+
+  if (shapeType === 'custom' && !dimensions.customParameterReference?.trim()) {
+    return false
+  }
+
   return true
 }

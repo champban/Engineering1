@@ -18,30 +18,65 @@ export const Physical = z.object({
 })
 export type Physical = z.infer<typeof Physical>
 
-/**
- * Structural/draft validation for mass (work order #6):
- * - Missing mass structure is blocking (enforced by schema required field).
- * - Known negative mass is blocking.
- * - `0` mass is only valid when explicitly verified (schema does not block
- *   0 outright; the "0 must be verified" nuance is enforced at Verified/
- *   Released level via `validateMassForRelease`).
- */
+/** Structural/draft validation for mass and optional physical metrics. */
 export function validateMassStructure(physical: Physical): ValidationIssue[] {
   const issues: ValidationIssue[] = []
   const { mass } = physical
+  const resolved = mass.status === 'verified' || mass.status === 'estimated'
+  const unresolved =
+    mass.status === 'unknown' ||
+    mass.status === 'pending' ||
+    mass.status === 'not_applicable'
+
+  if (resolved && mass.value === null) {
+    issues.push({
+      path: 'physical.mass.value',
+      message: `Mass is marked ${mass.status} but has no numeric value.`,
+    })
+  }
+
+  if (unresolved && mass.value !== null) {
+    issues.push({
+      path: 'physical.mass.value',
+      message: `Mass is marked ${mass.status}; unresolved values must use null.`,
+    })
+  }
+
   if (mass.value !== null && mass.value < 0) {
     issues.push({
       path: 'physical.mass.value',
-      message: `Mass must not be negative; received ${mass.value}.`,
+      message: `Mass must not be negative; received ${mass.value} ${mass.unit}.`,
     })
   }
+
   if (mass.value === 0 && mass.status !== 'verified') {
     issues.push({
       path: 'physical.mass.value',
       message:
-        '0 kg is only valid when physically meaningful and explicitly verified; use null with status "unknown" otherwise.',
+        'Zero mass is only valid when physically meaningful and explicitly verified; use null with status "unknown" otherwise.',
     })
   }
+
+  if (resolved && mass.source === 'unknown') {
+    issues.push({
+      path: 'physical.mass.source',
+      message: 'Resolved mass must identify a non-unknown source.',
+    })
+  }
+
+  for (const [key, value] of Object.entries({
+    densityKgM3: physical.densityKgM3,
+    volumeM3: physical.volumeM3,
+    surfaceAreaM2: physical.surfaceAreaM2,
+  })) {
+    if (typeof value === 'number' && value < 0) {
+      issues.push({
+        path: `physical.${key}`,
+        message: `${key} must not be negative; received ${value}.`,
+      })
+    }
+  }
+
   return issues
 }
 
