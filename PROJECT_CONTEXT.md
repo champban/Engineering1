@@ -7,179 +7,140 @@ Project owner: P'Boy
 Project manager / architecture / QA authority: ChatGPT
 Implementation engineer: Claude Pro
 
-## 1. Overview
+## Overview
 
 Build a professional browser-based, local-first 3D engineering application for creating, importing, measuring, editing, storing, assembling, and later simulating cookies, packaging equipment, conveyors, machines, cases, pallets, and complete production lines.
 
-The initial release focuses on static 3D engineering creation and assembly, but all native data must remain animation-ready and simulation-ready. Later programs add kinematic transport, engineering dynamics, load warnings, machine animation, discrete-event simulation, OEE, waste, quality, and line performance.
+The initial release focuses on static 3D engineering creation and assembly, but all native data remains animation-ready and simulation-ready. Product orientation is a first-class engineering property affecting projected dimensions, pitch, gap, lane occupancy, collision envelopes, transfers, machine acceptance, reject behavior, and downstream packing.
 
-Product orientation is a first-class engineering property. It must affect projected dimensions, pitch, gap, lane occupancy, collision envelopes, transfer rules, machine acceptance, reject behavior, and downstream packing arrangement.
+## Architecture
 
-## 2. Architecture and technology stack
-
-Approved architecture:
-
-- React with TypeScript strict mode.
-- Vite application shell.
-- Direct Three.js engineering viewport; React Three Fiber is not the core scene abstraction.
-- Native domain documents are authoritative; Three.js objects are render representations only.
+- React with TypeScript strict mode and Vite.
+- Direct Three.js engineering viewport; no React Three Fiber core abstraction.
+- Native domain documents are authoritative; Three.js objects are render representations.
 - Zod runtime validation.
-- IndexedDB/Dexie for searchable metadata and lightweight documents.
-- OPFS for large binary assets and recovery snapshots.
-- ZIP-compatible native packages for `.v3dproject`, `.v3do`, and `.v3da`.
-- Vitest for unit/service tests and Playwright when browser workflows are ready.
-- Adapter boundaries for CAD/BRep, photogrammetry, import/export, cloud storage, and future simulation engines.
+- IndexedDB/Dexie for metadata and lightweight documents.
+- OPFS for large assets and recovery snapshots.
+- ZIP-compatible `.v3dproject`, `.v3do`, and `.v3da` packages.
+- Vitest now; Playwright when interactive browser workflows are ready.
+- Adapters for CAD/BRep, photogrammetry, import/export, cloud storage, and simulation.
 
-Coordinate and unit conventions:
+Coordinate and units:
 
 - Right-handed coordinate system.
-- X = primary length/left-right axis.
-- Y = vertical axis.
-- Z = depth/width axis.
+- X = primary length/left-right, Y = vertical, Z = depth/width.
 - World floor = XZ plane at Y = 0.
-- Internal length = millimetres.
-- Internal mass = kilograms.
-- Internal linear velocity = metres/second.
-- Angles are stored in degrees in domain documents.
+- Internal length = mm; mass = kg; velocity = m/s.
+- Domain angles stored in degrees.
 
-## 3. Key decisions
+## Key decisions
 
-1. Mandatory properties include shape, shape-dependent dimensions, applicable diameter, surface/material, mass, transform, origin, hierarchy, orientation, motion-ready metadata, and collision role.
-2. `Unknown`, `Pending`, and `N/A` have distinct meanings. Zero must not represent an unknown engineering value.
-3. Draft objects may contain unresolved mandatory values; Released objects may not.
-4. Static objects still retain hierarchy, pivot, home transform, allowed axes, collision role, empty animation tracks, and empty event tracks.
-5. Product orientation is tracked relative to world, conveyor flow, and receiving-machine interfaces.
-6. Engineering relationships are explicit: `drives`, `transmitsPowerTo`, `rotates`, `carries`, `supports`, `follows`, `feeds`, `receives`, `pushes`, `blocks`, `detects`, `rejects`, and `accumulates`.
-7. Engineering simulation will be deterministic and independent of render frame rate. Visual animation is not engineering truth.
-8. Original scans/captures remain immutable. Working and released revisions are separated.
-9. Grouping preserves child identity and transforms; destructive flatten/join is not the default.
-10. GitHub is the source of truth for code, schemas, tests, configuration, and documentation. Google Drive is for large working assets and supplementary sharing.
+1. Mandatory fields include shape, shape-dependent dimensions, applicable diameter, surface/material, mass, transform, origin, hierarchy, orientation, motion-ready metadata, and collision role.
+2. `Unknown`, `Pending`, and `N/A` are distinct. Zero never represents unknown engineering data.
+3. Draft objects may be incomplete; Released objects may not contain unresolved mandatory values.
+4. Static objects retain hierarchy, pivot, home transform, allowed axes, collision role, and empty animation/event tracks.
+5. Product orientation is tracked relative to world, transport, and receiving-machine interfaces.
+6. Engineering relationships are explicit, including drive, transport, support, sensing, rejection, and accumulation relations.
+7. Simulation is deterministic and frame-rate independent; animation is not engineering truth.
+8. Original captures remain immutable and revisions are separated.
+9. Grouping preserves child identity and transforms.
+10. GitHub is the source of truth for code, schemas, tests, configuration, and documentation.
 
-## 4. Branch and deployment discipline
+## Branch and deployment discipline
 
-- `Doc`: architecture, requirements, schemas, handoffs, QA reports, context, backlog.
-- Feature branches: bounded implementation and deploy-preview candidates.
+- `Doc`: requirements, schemas, handoffs, QA reports, context, backlog.
+- Feature branches: bounded implementation and preview candidates.
 - `develop`: integration branch.
 - `main`: production candidate only.
 
-Deployment discipline:
-
 `Edit → Test → Verify → Commit → Report → Accumulate → Approve → Deploy`
 
-- A GitHub commit is not a production deployment.
-- Feature work must be tested before integration.
-- Production requires P'Boy approval or an explicitly approved hotfix.
-- Do not auto-merge feature branches into `main`.
-- Do not publish Netlify production after every change.
+A GitHub commit is not a deployment. Production requires P'Boy approval. Do not auto-merge feature branches to `main` and do not publish production after every change.
 
-## 5. Current implementation state
+## Current implementation state
 
 Current phase: Phase 0 — Foundation
-Phase completion: 95%
-Weighted overall project completion: 5.7%
+Phase progress: 95%
+Weighted overall project progress: 5.7%
 
 Completed:
 
-- PH0-001 Master roadmap and deployment discipline.
-- PH0-002 Core object schema v1.
-- PH0-003 Product orientation schema.
-- PH0-004 Dynamic relationship schema.
-- PH0-005 Native package specification.
-- PH0-006 Architecture decision.
-- PH0-007 Application scaffold.
-- PH0-008 Runtime validators, fixtures, utilities, and tests.
-- PH0-009 ChatGPT QA review and hardening.
+- PH0-001 through PH0-006: roadmap, schemas, package specification, and architecture.
+- PH0-007: application scaffold.
+- PH0-008: runtime validators, fixtures, calculations, and tests.
+- PH0-009: ChatGPT architecture/code/validation/security QA and hardening.
 
 Git state:
 
 - Feature branch: `feature/PH0-foundation-scaffold`
 - Claude implementation commit: `a26be523850d30dcc6dcec35e0d97b8d722302f3`
 - QA hardening commit: `5f38d76cc5f444300661773e5d235b6413eb1415`
-- CI workflow commit: `1cef419590c5dd6d802041805952e13d375836cf`
+- CI workflow commit / current feature head: `1cef419590c5dd6d802041805952e13d375836cf`
 - Integration branch: `develop`
-- Draft pull request: `#1`, feature branch into `develop`
+- Draft PR: `#1` from feature branch to `develop`
 - Merged to `develop`: No
 - Merged to `main`: No
 - Production deployed: No
 
-Final local QA result:
+Quality result:
 
-- TypeScript strict check: Passed.
-- ESLint: Passed.
-- Unit tests: 58/58 Passed.
-- Production build: Passed.
-- Application startup smoke test: Passed.
+- Local TypeScript: Passed.
+- Local ESLint: Passed.
+- Local unit tests: 58/58 Passed.
+- Local production build: Passed.
+- Local application startup smoke test: Passed.
 - Secret/API-key scan: No credentials found.
-- GitHub Actions quality workflow: Added and running on PR #1.
+- GitHub Actions Quality Gate run #1: Passed.
 
 Audit note:
 
-A fresh npm vulnerability audit recheck was blocked by a temporary registry/network error. A preliminary earlier check reported zero known vulnerabilities, but final independent reconfirmation remains pending.
+A final npm vulnerability recheck was blocked by a temporary registry/network error. A preliminary earlier check reported zero known vulnerabilities, but final independent reconfirmation remains pending.
 
-Detailed review: `PH0_009_QA_REPORT.md`
+Detailed report: `PH0_009_QA_REPORT.md`
 
-## 6. Current active gate
+## Current gate — PH0-010
 
-### PH0-010 — P'Boy acceptance
+P'Boy acceptance is READY. Required effort is no more than five browser checks followed by one Approve/Reject decision.
 
-P'Boy should perform no more than five explicit checks:
+A permanent Netlify project named Engineering1 does not currently exist. Creating a new Netlify project requires explicit P'Boy confirmation. Until confirmed, production remains untouched.
 
-1. Open the Phase 0 application in a browser test environment.
-2. Confirm the shell opens and shows the four fixture categories.
-3. Confirm the validation summary is understandable.
-4. Confirm practical desktop usability and basic mobile readability.
-5. Approve or reject Phase 0.
-
-After approval:
+After PH0-010 approval:
 
 1. Mark PR #1 ready.
 2. Merge PR #1 into `develop` only.
-3. Begin Phase 1 — Local-first project/file management.
+3. Begin Phase 1 local-first file/project management.
 4. Keep `main` and production unchanged.
 
-## 7. Open bugs, risks, and backlog
+## Open work and risks
 
-### P0 — Blocking
+### P0
 
-- Complete PH0-010 P'Boy browser acceptance.
-- Confirm GitHub Actions PR quality gate passes.
+- Obtain P'Boy confirmation to create a new Netlify project for preview testing, or use a temporary Codespaces preview.
+- Complete PH0-010 acceptance.
 
-### P1 — High
+### P1
 
-- Provide a safe browser test URL or downloadable acceptance package.
-- Confirm Netlify deploy previews are configured without enabling production auto-publish.
 - Merge PR #1 into `develop` only after acceptance.
-- Prepare Phase 1 bounded work order.
+- Prepare the bounded Phase 1 work order.
+- Confirm Netlify deploy previews and production lock after project creation.
 
-### P2 — Medium
+### P2
 
-- Re-run dependency vulnerability audit when npm registry access is stable.
-- Add Playwright when the first interactive browser workflow exists.
-- Add Dexie, OPFS, Three.js, and package libraries when their approved implementation tasks begin.
-- Add CSP and package-import hardening before external URL/file import.
+- Re-run dependency audit when npm registry access is stable.
+- Add Playwright with the first interactive workflow.
+- Add Dexie, OPFS, Three.js, packaging, CSP, and import hardening in their approved tasks.
 
-### P3 — Later programs
+### Later
 
 - Kinematic product transport.
-- Motor/gearbox/pulley/belt engineering calculations.
-- Load distribution, point load, slip, stability, and torque warnings.
-- Machine animation timeline.
+- Motor/gearbox/pulley/belt calculations.
+- Load, slip, stability, and torque warnings.
+- Animation timeline.
 - Discrete-event simulation and OEE.
 
-## 8. Progress reporting
+## Progress reporting
 
-Every meaningful task report must separate:
-
-- Implemented
-- Tested
-- Verified
-- Merged
-- Released
-- Deployed
-
-It must also include phase percentage, weighted overall percentage, branch, commit SHA, tests, known issues, production status, and next owner/task.
-
-Project formula:
+Every meaningful report separates Implemented, Tested, Verified, Merged, Released, and Deployed, and includes phase percentage, weighted overall percentage, branch, commit SHA, tests, issues, production status, and next owner/task.
 
 `Total progress = Σ(phase weight × phase completion)`
 
