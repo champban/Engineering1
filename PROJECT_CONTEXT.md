@@ -102,7 +102,15 @@ Detailed report: `PH0_009_QA_REPORT.md`
 
 P'Boy acceptance is READY. Required effort is no more than five browser checks followed by one Approve/Reject decision.
 
-A permanent Netlify project named Engineering1 does not currently exist. Creating a new Netlify project requires explicit P'Boy confirmation. Until confirmed, production remains untouched.
+Netlify preview state:
+
+- Dedicated preview project created: `engineering1-ph0-preview`.
+- This project is for Phase 0 acceptance only and is not the production application site.
+- Site ID: `e2b78e11-93c5-4301-ab69-718015e74c55`.
+- Automatic upload from the ChatGPT runtime failed because the runtime could not resolve the Netlify MCP upload host.
+- A verified manual-deploy package was generated: `Engineering1-PH0-preview-dist.zip`.
+- Manual preview upload by P'Boy remains pending.
+- Production remains untouched.
 
 After PH0-010 approval:
 
@@ -115,14 +123,14 @@ After PH0-010 approval:
 
 ### P0
 
-- Obtain P'Boy confirmation to create a new Netlify project for preview testing, or use a temporary Codespaces preview.
+- Upload the verified Phase 0 build to the dedicated Netlify preview project.
 - Complete PH0-010 acceptance.
 
 ### P1
 
 - Merge PR #1 into `develop` only after acceptance.
 - Prepare the bounded Phase 1 work order.
-- Confirm Netlify deploy previews and production lock after project creation.
+- Configure Git-connected deploy previews and production lock before later feature phases.
 
 ### P2
 
