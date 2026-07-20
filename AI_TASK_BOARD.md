@@ -27,8 +27,8 @@ Production deployed: No
 | PH0-006 | Architecture and approved technology stack | ChatGPT | DONE | None | `ARCHITECTURE_DECISION_V1.md` |
 | PH0-007 | Application scaffold and automated test framework | Claude Pro | DONE | None | Implemented on feature branch |
 | PH0-008 | Schema validators and sample fixtures | Claude Pro | DONE | None | Implemented; 58 tests after QA hardening |
-| PH0-009 | Architecture, code, validation, security, test and build review | ChatGPT | DONE | None | `PH0_009_QA_REPORT.md`; Draft PR #1 |
-| PH0-010 | Phase 0 browser acceptance and Phase 1 approval | P'Boy | READY | 10–15 min | Five explicit checks, then Approve/Reject |
+| PH0-009 | Architecture, code, validation, security, test and build review | ChatGPT | DONE | None | QA report; GitHub CI passed; Draft PR #1 |
+| PH0-010 | Phase 0 browser acceptance and Phase 1 approval | P'Boy | READY | 10–15 min | Five checks, then Approve/Reject |
 
 ## Git state
 
@@ -36,7 +36,7 @@ Production deployed: No
 - Feature branch: `feature/PH0-foundation-scaffold`
 - Claude base implementation commit: `a26be523850d30dcc6dcec35e0d97b8d722302f3`
 - QA hardening commit: `5f38d76cc5f444300661773e5d235b6413eb1415`
-- CI workflow commit: `1cef419590c5dd6d802041805952e13d375836cf`
+- CI workflow commit / feature head: `1cef419590c5dd6d802041805952e13d375836cf`
 - Integration branch: `develop`
 - Draft PR: `#1` from feature branch into `develop`
 - Merged to `develop`: No
@@ -46,13 +46,13 @@ Production deployed: No
 ## PH0-009 final quality result
 
 - Dependency installation: Passed locally.
-- TypeScript strict check: Passed.
-- ESLint: Passed.
-- Unit tests: 58/58 Passed.
-- Production build: Passed.
-- Application startup smoke test: Passed.
+- TypeScript strict check: Passed locally and in GitHub Actions.
+- ESLint: Passed locally and in GitHub Actions.
+- Unit tests: 58/58 Passed locally and in GitHub Actions.
+- Production build: Passed locally and in GitHub Actions.
+- Application startup smoke test: Passed locally.
 - Secret/API-key scan: No credentials found.
-- GitHub Actions quality gate: Added; current run tracked through PR #1.
+- GitHub Actions Quality Gate run #1: Passed.
 
 Audit note:
 
@@ -74,12 +74,12 @@ A fresh npm vulnerability audit could not be re-run during final QA because the 
 
 ## Current gate — PH0-010
 
-P'Boy will be asked to perform only these actions:
+P'Boy actions:
 
-1. Open one browser test environment.
-2. Confirm the Phase 0 shell opens and shows four valid fixtures.
-3. Confirm validation summary is understandable.
-4. Confirm desktop usability and basic mobile readability.
+1. Confirm whether ChatGPT may create a new Netlify project for non-production preview testing.
+2. Open the resulting preview URL.
+3. Confirm the Phase 0 shell shows four valid fixtures.
+4. Confirm validation summary and desktop/mobile readability.
 5. Approve or reject Phase 0.
 
 No production deployment and no `main` merge are allowed during this gate.
@@ -88,5 +88,5 @@ No production deployment and no `main` merge are allowed during this gate.
 
 1. Mark PR #1 ready and merge into `develop` only.
 2. Start Phase 1 — Local-first project/file management.
-3. Create a bounded Claude work order for IndexedDB/OPFS, autosave, recovery, project import/export, revisions, recycle bin, and unique naming.
+3. Create a bounded work order for IndexedDB/OPFS, autosave, recovery, project import/export, revisions, recycle bin, and unique naming.
 4. Keep `main` and Netlify production unchanged until a later approved release gate.
