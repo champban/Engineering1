@@ -1,7 +1,18 @@
 export const OBJECT_ASSET_SCHEMA_VERSION = '1.0.0'
 
-export type ObjectAssetLifecycle = 'draft' | 'calibrated' | 'verified' | 'released'
-export type ObjectSourceType = 'camera' | 'image-upload' | 'video-frame' | 'manual' | 'ai-generated'
+export type ObjectAssetLifecycle =
+  | 'draft'
+  | 'calibrated'
+  | 'verified'
+  | 'released'
+
+export type ObjectSourceType =
+  | 'camera'
+  | 'image-upload'
+  | 'video-frame'
+  | 'manual'
+  | 'ai-generated'
+
 export type ObjectGeometryType = 'proxy-box' | 'proxy-cylinder' | 'ai-mesh'
 
 export interface ObjectDimensionsMm {
@@ -72,6 +83,27 @@ export function createObjectAsset(input: NewObjectAssetInput): ObjectAsset {
     renderedPreviewUrl: input.renderedPreviewUrl,
     createdAt: now,
     updatedAt: now,
+  }
+}
+
+export function duplicateObjectAsset(asset: ObjectAsset): ObjectAsset {
+  const now = new Date().toISOString()
+  return {
+    ...asset,
+    id: createId('obj'),
+    name: `${asset.name} copy`,
+    lifecycle: 'draft',
+    createdAt: now,
+    updatedAt: now,
+  }
+}
+
+export function markObjectAssetCalibrated(asset: ObjectAsset): ObjectAsset {
+  validateDimensions(asset.dimensionsMm)
+  return {
+    ...asset,
+    lifecycle: 'calibrated',
+    updatedAt: new Date().toISOString(),
   }
 }
 
