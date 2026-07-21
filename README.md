@@ -22,6 +22,10 @@ Engineering1 is a browser-first, local-first engineering platform. The current s
 - Server-side AI provider adapters. Provider secrets are never exposed in browser code.
 - Planned HMI/SCADA and PLC functions remain visible, grey, and disabled.
 
+## Getting-started demo content
+
+The Phase 1 preview seeds a playable demo workspace when the browser has no saved user content. It includes a cookie single pack, a 0.75 kW gearmotor, a landscape tree placeholder, and straight/curve/spiral/buffer conveyors. Use **Load demo project** in the top bar to restore the examples at any time.
+
 ## Commands
 
 ```bash
