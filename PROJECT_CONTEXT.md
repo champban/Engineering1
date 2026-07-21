@@ -86,7 +86,7 @@ A GitHub commit is not a deployment. Production requires P'Boy approval. Do not 
 Current branch: `feature/phase1a-camera-gallery`
 Base commit: `1cef419590c5dd6d802041805952e13d375836cf`
 Feature commit: `f975a998b7ae9cc8a0969ae83fefb937e5579777`
-Current branch head: `685e4dd67cba2f0efc0adeaf525b62183afa1ea2`
+Current branch head: `f5796653e3f65db166f8ed489eb8b8206fabd4e4`
 Draft stacked PR: `#2` targeting `develop`
 Merge dependency: PR #2 must not be merged before Phase 0 PR #1 is accepted and integrated.
 
@@ -102,8 +102,11 @@ Implemented on the feature branch:
 - AI queue polling and job-state display.
 - Server-only AI secret handling and provider URL allowlisting.
 - Calibratable visual 3D proxy.
+- Lazy-loaded direct Three.js preview with orbit, pan/zoom controls, engineering-proportion proxy geometry, and generated GLB loading.
+- GLB load failure/CORS fallback to a calibrated proxy and rendered-image reference.
 - Object name, category, tags, material, and physical dimensions.
 - Reusable Object Gallery with search.
+- Gallery 3D inspector, asset duplication, deletion, and Draft → Calibrated transition.
 - Gallery-to-layout insertion.
 - Mechanical layout alpha with X/Z position, elevation, and rotation.
 - Straight, curve, incline, decline, spiral, and buffer conveyor definitions.
@@ -112,7 +115,7 @@ Implemented on the feature branch:
 - Cookie-pack/carton/case transport animation and reverse direction.
 - Planned HMI/SCADA and PLC workspaces displayed grey and disabled.
 - Netlify Functions and redirects for AI capability, segmentation, reconstruction, and job status.
-- Unit tests for Gallery records, capability states, and transport paths.
+- Unit tests for Gallery records, capability states, transport paths, lifecycle helpers, and 3D preview proportion normalization.
 
 AI prototype configuration:
 
@@ -131,13 +134,13 @@ Local implementation verification completed in the working runtime:
 - Dependency audit: 0 reported vulnerabilities.
 - TypeScript strict check: Passed.
 - ESLint: Passed.
-- Unit tests: 58/58 Passed, including nine new Phase 1 tests.
+- Unit tests: 61/61 Passed.
 - Production build: Passed.
-- Build output: HTML 0.62 kB, CSS 13.25 kB, JavaScript 220.07 kB.
+- Production build uses code splitting: main application JavaScript 223.47 kB and lazy Three.js preview chunk 588.90 kB before gzip.
 
 Actual GitHub feature-branch verification:
 
-- GitHub Actions Quality Gate run #3: Passed.
+- GitHub Actions Quality Gate run #26 on commit `f5796653e3f65db166f8ed489eb8b8206fabd4e4`: Passed.
 - Checkout: Passed.
 - Locked dependency installation: Passed.
 - TypeScript check: Passed.
@@ -147,7 +150,7 @@ Actual GitHub feature-branch verification:
 
 Important verification limitation:
 
-- A headless-browser screenshot/smoke attempt hung in the current runtime. Browser interaction is therefore not yet marked Verified.
+- P'Boy opened the deployed static preview successfully and confirmed the Phase 1 workspace shell rendered correctly. Full end-to-end object capture, Gallery, layout, and runtime acceptance remains pending.
 - AI segmentation and AI reconstruction are not yet verified against a real object because the isolated preview environment does not yet contain `FAL_KEY`.
 
 ## Netlify Phase 1 acceptance deployment
@@ -157,9 +160,10 @@ Important verification limitation:
 - Dashboard: `https://app.netlify.com/projects/engineering1-phase1-preview`.
 - Reserved URL: `https://engineering1-phase1-preview.netlify.app`.
 - The preview project is isolated from production and from the Phase 0 acceptance site.
-- Automatic source upload was attempted after a fresh successful local typecheck, lint, 58/58 tests, and production build.
-- The Netlify MCP uploader downloaded successfully, but its authenticated upload request failed with `TypeError: fetch failed` from the current runtime.
-- The site therefore has no verified live deployment yet.
+- Static preview deployment is live and Netlify reports deploy state `ready`.
+- Current live static deploy ID: `6a5ef317f8efcc78c652b2d0`.
+- P'Boy opened the site and verified the workspace shell visually.
+- The live static deploy does not include Netlify Functions or live AI because the project is not yet connected to the feature branch and `FAL_KEY` is not configured.
 - Static preview package: `Engineering1-Phase1A-1C-preview-dist.zip`.
 - Static preview SHA-256: `846365dab348a3e1772b61055c6a80dee2da645f9972037d599c3a6d4f20f96c`.
 - Full source/functions package: `Engineering1-Phase1A-1C-source.zip`.
@@ -171,30 +175,29 @@ Current status vocabulary:
 - Implemented: Yes, bounded Phase 1A–1C alpha vertical slice.
 - Tested locally: Yes, typecheck/lint/unit/build.
 - Tested on actual GitHub branch: Yes, Quality Gate passed.
-- Verified in an interactive browser: No, pending.
+- Verified in an interactive browser: Partially; live shell verified, full workflow pending.
 - AI provider verified with a real object: No, pending.
 - Merged to `develop`: No.
 - Merged to `main`: No.
 - Released: No.
-- Deployed: No; the dedicated site exists but contains no verified deploy.
+- Deployed: Static acceptance preview is live; Functions-enabled AI deployment is pending.
 
 ## Current gates and next work
 
 ### P0
 
-1. Upload the static preview package to the dedicated Phase 1 Netlify project for UI/manual-fallback acceptance, or connect the feature branch for a Functions-enabled build.
-2. Perform real-browser acceptance for upload, selection, manual environment removal, Gallery save, layout insertion, and conveyor Runtime.
+1. Perform full real-browser acceptance for upload, selection, manual environment removal, 3D proxy review, Gallery save/duplicate/delete/calibrate, layout insertion, and conveyor Runtime.
+2. Connect the Netlify project to `feature/phase1a-camera-gallery` so Functions are built from source.
 3. Configure `FAL_KEY` only in the isolated preview site's server environment.
-4. Deploy the full source with Netlify Functions enabled.
-5. Test AI segmentation and AI reconstruction with a real object.
-6. Render the generated GLB directly inside the engineering viewport and verify scale/orientation.
+4. Test AI segmentation, generated GLB loading, orbit review, scale calibration, and save-to-Gallery using a real object.
+5. Verify cross-origin loading for provider-hosted GLB assets; use a server proxy or object storage adapter if direct CORS fails.
 
 ### P1
 
 - Add robust multi-frame video selection and user correction of segmentation masks.
 - Replace alpha browser storage with IndexedDB/Dexie and OPFS.
 - Add revision management and Draft → Calibrated → Verified → Released workflow.
-- Add object deletion, renaming, duplication, categories, folders, and gallery import/export.
+- Add object renaming, category management, folders, revision history, and Gallery import/export.
 - Add proper scene-object grouping and assemblies.
 - Add conveyor connectors and multi-conveyor path continuity.
 
