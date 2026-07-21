@@ -1,29 +1,41 @@
 # PROJECT_CONTEXT.md
 
-Last updated: 2026-07-20
+Last updated: 2026-07-21
 Repository: `champban/Engineering1`
 Documentation branch: `Doc`
 Project owner: P'Boy
 Project manager / architecture / QA authority: ChatGPT
-Implementation engineer: Claude Pro
+Implementation owner for the current Phase 1 vertical slice: ChatGPT
 
-## Overview
+## Product vision
 
-Build a professional browser-based, local-first 3D engineering application for creating, importing, measuring, editing, storing, assembling, and later simulating cookies, packaging equipment, conveyors, machines, cases, pallets, and complete production lines.
+Engineering1 is an AI-native universal 2D/3D design, engineering, documentation, simulation, virtual-commissioning, and digital-twin platform.
 
-The initial release focuses on static 3D engineering creation and assembly, but all native data remains animation-ready and simulation-ready. Product orientation is a first-class engineering property affecting projected dimensions, pitch, gap, lane occupancy, collision envelopes, transfers, machine acceptance, reject behavior, and downstream packing.
+The first product priority is no longer limited to production-equipment objects. The application must allow the user to capture or upload an image/video of any physical object, choose the target object, remove unrelated surroundings, generate a reusable 3D visual object, calibrate its physical dimensions, attach static engineering/procurement properties, and store it in a reusable Object Gallery for later assembly.
+
+The first three implementation programs are:
+
+1. **Phase 1A — AI Camera-to-Gallery**: image/video capture, object selection, environment removal, AI reconstruction, static properties, reusable gallery.
+2. **Phase 1B — Mechanical Layout Assembly**: place Gallery objects in an indoor-factory or outdoor-layout workspace, position/rotate/elevate them, and add transport modules.
+3. **Phase 1C — Transport Visual Runtime**: animate cookie packs, multipacks, cartons, or cases on straight, curved, incline, decline, spiral, and buffering conveyor paths.
+
+Later domain modules will support mechanical, industrial, HVAC/thermodynamic, process, electrical, automation, civil, architectural, landscape, and general consumer design workflows.
 
 ## Architecture
 
 - React with TypeScript strict mode and Vite.
-- Direct Three.js engineering viewport; no React Three Fiber core abstraction.
-- Native domain documents are authoritative; Three.js objects are render representations.
-- Zod runtime validation.
-- IndexedDB/Dexie for metadata and lightweight documents.
-- OPFS for large assets and recovery snapshots.
-- ZIP-compatible `.v3dproject`, `.v3do`, and `.v3da` packages.
-- Vitest now; Playwright when interactive browser workflows are ready.
-- Adapters for CAD/BRep, photogrammetry, import/export, cloud storage, and simulation.
+- Direct Three.js engineering viewport remains the target 3D renderer; native domain documents are authoritative.
+- Zod runtime validation for authoritative engineering records.
+- Local-first persistence; current Phase 1 alpha uses browser storage while IndexedDB/Dexie and OPFS remain the approved production target.
+- Versioned reusable Object Asset records separated from scene instances.
+- Universal-object core with optional domain extensions.
+- Editor and Runtime are separate workspaces.
+- Visual Engineering and future HMI/SCADA are separate workspaces.
+- Feature Capability Registry controls whether a function is available, experimental, planned, or disabled.
+- Working functions use active colour. Planned or unavailable functions are grey and cannot be invoked.
+- AI integrations are adapter-based and provider-neutral at the domain boundary.
+- AI provider secrets remain server-side only.
+- Netlify Functions are the current approved server boundary for the Phase 1 AI prototype.
 
 Coordinate and units:
 
@@ -35,15 +47,15 @@ Coordinate and units:
 
 ## Key decisions
 
-1. Mandatory fields include shape, shape-dependent dimensions, applicable diameter, surface/material, mass, transform, origin, hierarchy, orientation, motion-ready metadata, and collision role.
-2. `Unknown`, `Pending`, and `N/A` are distinct. Zero never represents unknown engineering data.
-3. Draft objects may be incomplete; Released objects may not contain unresolved mandatory values.
-4. Static objects retain hierarchy, pivot, home transform, allowed axes, collision role, and empty animation/event tracks.
-5. Product orientation is tracked relative to world, transport, and receiving-machine interfaces.
-6. Engineering relationships are explicit, including drive, transport, support, sensing, rejection, and accumulation relations.
-7. Simulation is deterministic and frame-rate independent; animation is not engineering truth.
-8. Original captures remain immutable and revisions are separated.
-9. Grouping preserves child identity and transforms.
+1. Every reusable Gallery item is an Engineering Object, not only a rendered mesh.
+2. Camera-to-3D must accept arbitrary real-world objects, not only factory/process equipment.
+3. The user must be able to select the target object and exclude unrelated environment/background.
+4. AI-generated geometry is initially classified as a visual/draft object, not automatically verified engineering CAD.
+5. Manual dimension calibration is mandatory before an object can progress toward Verified or Released status.
+6. Original captures remain immutable; cleaned images, generated models, and later engineering revisions are separate derivatives.
+7. Gallery assets are independent from scene instances so one asset may be reused in many assemblies and projects.
+8. Static geometry/properties come before dynamic simulation, but schemas remain extension-ready for sensors, I/O, controls, process, thermal, structural, and digital-twin modules.
+9. HMI/SCADA and PLC features remain visible but disabled until their runtimes and safety/security boundaries are implemented and verified.
 10. GitHub is the source of truth for code, schemas, tests, configuration, and documentation.
 
 ## Branch and deployment discipline
@@ -59,97 +71,111 @@ A GitHub commit is not a deployment. Production requires P'Boy approval. Do not 
 
 ## Current implementation state
 
-Current phase: Phase 0 — Foundation
-Phase progress: 95%
-Weighted overall project progress: 5.7%
+### Phase 0 foundation
 
-Completed:
+- Phase 0 progress remains 95% pending browser acceptance.
+- Existing feature branch: `feature/PH0-foundation-scaffold`.
+- Verified Phase 0 feature head: `1cef419590c5dd6d802041805952e13d375836cf`.
+- Draft PR #1 targets `develop`.
+- Merged to `develop`: No.
+- Merged to `main`: No.
+- Production deployed: No.
 
-- PH0-001 through PH0-006: roadmap, schemas, package specification, and architecture.
-- PH0-007: application scaffold.
-- PH0-008: runtime validators, fixtures, calculations, and tests.
-- PH0-009: ChatGPT architecture/code/validation/security QA and hardening.
+### Phase 1A–1C alpha vertical slice
 
-Git state:
+Current branch: `feature/phase1a-camera-gallery`
+Base commit: `1cef419590c5dd6d802041805952e13d375836cf`
+Feature commit: `f975a998b7ae9cc8a0969ae83fefb937e5579777`
+Current branch head / CI-trigger commit: `685e4dd67cba2f0efc0adeaf525b62183afa1ea2`
 
-- Feature branch: `feature/PH0-foundation-scaffold`
-- Claude implementation commit: `a26be523850d30dcc6dcec35e0d97b8d722302f3`
-- QA hardening commit: `5f38d76cc5f444300661773e5d235b6413eb1415`
-- CI workflow commit / current feature head: `1cef419590c5dd6d802041805952e13d375836cf`
-- Integration branch: `develop`
-- Draft PR: `#1` from feature branch to `develop`
-- Merged to `develop`: No
-- Merged to `main`: No
-- Production deployed: No
+Implemented on the feature branch:
 
-Quality result:
+- Feature Capability Registry.
+- Camera/Image/Video workspace.
+- Image upload and representative video-frame extraction.
+- Box selection and point-focus selection.
+- Manual selected-region extraction fallback.
+- Server-side AI segmentation adapter.
+- Server-side AI image-to-3D reconstruction adapter.
+- AI queue polling and job-state display.
+- Server-only AI secret handling and provider URL allowlisting.
+- Calibratable visual 3D proxy.
+- Object name, category, tags, material, and physical dimensions.
+- Reusable Object Gallery with search.
+- Gallery-to-layout insertion.
+- Mechanical layout alpha with X/Z position, elevation, and rotation.
+- Straight, curve, incline, decline, spiral, and buffer conveyor definitions.
+- Direction, speed, length, width, and elevation properties.
+- Transport Visual Runtime with Play/Pause/Reset and speed multiplier.
+- Cookie-pack/carton/case transport animation and reverse direction.
+- Planned HMI/SCADA and PLC workspaces displayed grey and disabled.
+- Netlify Functions and redirects for AI capability, segmentation, reconstruction, and job status.
+- Unit tests for Gallery records, capability states, and transport paths.
 
-- Local TypeScript: Passed.
-- Local ESLint: Passed.
-- Local unit tests: 58/58 Passed.
-- Local production build: Passed.
-- Local application startup smoke test: Passed.
-- Secret/API-key scan: No credentials found.
-- GitHub Actions Quality Gate run #1: Passed.
+AI prototype configuration:
 
-Audit note:
+- Provider boundary: fal.ai-compatible server functions.
+- Segmentation adapter target: `fal-ai/sam2/image`.
+- Reconstruction adapter target: `tripo3d/tripo/v2.5/image-to-3d`.
+- Required server environment variable: `FAL_KEY`.
+- When `FAL_KEY` is absent, AI controls remain disabled/grey while manual extraction and proxy creation remain available.
+- Never place or commit `FAL_KEY` in browser code, repository files, chat messages, or downloadable packages.
 
-A final npm vulnerability recheck was blocked by a temporary registry/network error. A preliminary earlier check reported zero known vulnerabilities, but final independent reconfirmation remains pending.
+## Quality status
 
-Detailed report: `PH0_009_QA_REPORT.md`
+Local implementation verification completed in the working runtime:
 
-## Current gate — PH0-010
+- `npm ci`: Passed.
+- Dependency audit: 0 reported vulnerabilities.
+- TypeScript strict check: Passed.
+- ESLint: Passed.
+- Unit tests in the reconstructed local baseline: 58/58 Passed, including nine new Phase 1 tests.
+- Production build: Passed.
+- Build output: HTML 0.62 kB, CSS 13.25 kB, JavaScript 220.07 kB.
 
-P'Boy acceptance is READY. Required effort is no more than five browser checks followed by one Approve/Reject decision.
+Important verification limitation:
 
-Netlify preview state:
+- The repository feature branch includes the newer Phase 0 QA test set, so the expected GitHub branch total is higher than the reconstructed local baseline. GitHub Actions verification on the actual branch remains pending.
+- A headless-browser screenshot/smoke attempt hung in the current runtime. Browser interaction is therefore not yet marked Verified.
 
-- Dedicated preview project created: `engineering1-ph0-preview`.
-- This project is for Phase 0 acceptance only and is not the production application site.
-- Site ID: `e2b78e11-93c5-4301-ab69-718015e74c55`.
-- Automatic upload from the ChatGPT runtime failed because the runtime could not resolve the Netlify MCP upload host.
-- A verified manual-deploy package was generated: `Engineering1-PH0-preview-dist.zip`.
-- Manual preview upload by P'Boy remains pending.
-- Production remains untouched.
+Current status vocabulary:
 
-After PH0-010 approval:
+- Implemented: Yes, bounded Phase 1A–1C alpha vertical slice.
+- Tested locally: Yes, typecheck/lint/unit/build.
+- Verified in an interactive browser: No, pending.
+- Merged to `develop`: No.
+- Merged to `main`: No.
+- Released: No.
+- Deployed: No.
 
-1. Mark PR #1 ready.
-2. Merge PR #1 into `develop` only.
-3. Begin Phase 1 local-first file/project management.
-4. Keep `main` and production unchanged.
-
-## Open work and risks
+## Current gates and next work
 
 ### P0
 
-- Upload the verified Phase 0 build to the dedicated Netlify preview project.
-- Complete PH0-010 acceptance.
+1. Run GitHub Actions against the actual Phase 1 feature branch and resolve any repository-baseline failures.
+2. Perform real-browser acceptance for upload, selection, manual environment removal, Gallery save, layout insertion, and conveyor Runtime.
+3. Configure `FAL_KEY` only in the isolated preview site's server environment.
+4. Deploy the feature branch to an isolated Netlify acceptance site with Functions enabled.
+5. Test AI segmentation and AI reconstruction with a real object.
 
 ### P1
 
-- Merge PR #1 into `develop` only after acceptance.
-- Prepare the bounded Phase 1 work order.
-- Configure Git-connected deploy previews and production lock before later feature phases.
+- Add robust multi-frame video selection and user correction of segmentation masks.
+- Add actual GLB rendering in the engineering viewport instead of linking only to the generated model.
+- Replace alpha browser storage with IndexedDB/Dexie and OPFS.
+- Add revision management and Draft → Calibrated → Verified → Released workflow.
+- Add object deletion, renaming, duplication, categories, folders, and gallery import/export.
+- Add proper scene-object grouping and assemblies.
+- Add conveyor connectors and multi-conveyor path continuity.
 
 ### P2
 
-- Re-run dependency audit when npm registry access is stable.
-- Add Playwright with the first interactive workflow.
-- Add Dexie, OPFS, Three.js, packaging, CSP, and import hardening in their approved tasks.
-
-### Later
-
-- Kinematic product transport.
-- Motor/gearbox/pulley/belt calculations.
-- Load, slip, stability, and torque warnings.
-- Animation timeline.
-- Discrete-event simulation and OEE.
+- Add BOM, specification, commercial/fabricated classification, documents, and procurement records.
+- Add camera scale references and measurable calibration overlays.
+- Add multi-view reconstruction and later mesh-to-parametric/BRep adapters.
 
 ## Progress reporting
 
 Every meaningful report separates Implemented, Tested, Verified, Merged, Released, and Deployed, and includes phase percentage, weighted overall percentage, branch, commit SHA, tests, issues, production status, and next owner/task.
 
 `Total progress = Σ(phase weight × phase completion)`
-
-Phase 0 weight is 6% of the initial release.
