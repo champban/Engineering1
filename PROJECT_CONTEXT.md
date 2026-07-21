@@ -11,7 +11,7 @@ Implementation owner for the current Phase 1 vertical slice: ChatGPT
 
 Engineering1 is an AI-native universal 2D/3D design, engineering, documentation, simulation, virtual-commissioning, and digital-twin platform.
 
-The first product priority is no longer limited to production-equipment objects. The application must allow the user to capture or upload an image/video of any physical object, choose the target object, remove unrelated surroundings, generate a reusable 3D visual object, calibrate its physical dimensions, attach static engineering/procurement properties, and store it in a reusable Object Gallery for later assembly.
+The first product priority is not limited to production-equipment objects. The application must allow the user to capture or upload an image/video of any physical object, choose the target object, remove unrelated surroundings, generate a reusable 3D visual object, calibrate its physical dimensions, attach static engineering/procurement properties, and store it in a reusable Object Gallery for later assembly.
 
 The first three implementation programs are:
 
@@ -57,6 +57,8 @@ Coordinate and units:
 8. Static geometry/properties come before dynamic simulation, but schemas remain extension-ready for sensors, I/O, controls, process, thermal, structural, and digital-twin modules.
 9. HMI/SCADA and PLC features remain visible but disabled until their runtimes and safety/security boundaries are implemented and verified.
 10. GitHub is the source of truth for code, schemas, tests, configuration, and documentation.
+11. Every deployable preview should include two or three ready-to-use demo objects so P'Boy can immediately explore Gallery, Layout, and Runtime without first creating an object.
+12. Whenever a downloadable file is produced, the response must include a direct file link in the same message.
 
 ## Branch and deployment discipline
 
@@ -85,8 +87,7 @@ A GitHub commit is not a deployment. Production requires P'Boy approval. Do not 
 
 Current branch: `feature/phase1a-camera-gallery`
 Base commit: `1cef419590c5dd6d802041805952e13d375836cf`
-Feature commit: `f975a998b7ae9cc8a0969ae83fefb937e5579777`
-Current branch head: `e1c862225a65dc3565b51147f538f66fe525ec21`
+Current branch head: `fa9f959248b373e213a982c19e6ca9789b4dafac`
 Draft stacked PR: `#2` targeting `develop`
 Merge dependency: PR #2 must not be merged before Phase 0 PR #1 is accepted and integrated.
 
@@ -115,7 +116,17 @@ Implemented on the feature branch:
 - Cookie-pack/carton/case transport animation and reverse direction.
 - Planned HMI/SCADA and PLC workspaces displayed grey and disabled.
 - Netlify Functions and redirects for AI capability, segmentation, reconstruction, and job status.
-- Unit tests for Gallery records, capability states, transport paths, lifecycle helpers, and 3D preview proportion normalization.
+- Unit tests for Gallery records, capability states, transport paths, lifecycle helpers, 3D preview proportion normalization, and demo-workspace integrity.
+
+Getting-started demo content:
+
+- Cookie Single Pack — calibrated proxy box, 95 × 55 × 15 mm.
+- Gearmotor 0.75 kW — calibrated proxy cylinder, 420 × 260 × 280 mm.
+- Landscape Tree Placeholder — calibrated outdoor object, 1800 × 1800 × 3500 mm.
+- Demo Layout containing all three objects.
+- Demo Straight, Curve, Spiral, and Buffer conveyors ready for Visual Runtime.
+- Empty browser workspaces automatically receive the demo project.
+- A `Load demo project` action restores the examples after the user has modified or deleted them.
 
 AI prototype configuration:
 
@@ -128,19 +139,19 @@ AI prototype configuration:
 
 ## Quality status
 
-Local implementation verification completed in the working runtime:
+Local implementation verification:
 
 - `npm ci`: Passed.
 - Dependency audit: 0 reported vulnerabilities.
 - TypeScript strict check: Passed.
 - ESLint: Passed.
-- Unit tests: 61/61 Passed.
+- Unit tests: 64/64 Passed.
 - Production build: Passed.
-- Production build uses code splitting: main application JavaScript 223.47 kB and lazy Three.js preview chunk 588.90 kB before gzip.
+- Production build output: HTML 0.62 kB, CSS 15.17 kB, main application JavaScript 228.36 kB, lazy Three.js preview chunk 588.90 kB before gzip.
 
 Actual GitHub feature-branch verification:
 
-- GitHub Actions Quality Gate run #30 on commit `e1c862225a65dc3565b51147f538f66fe525ec21`: Passed.
+- GitHub Actions Quality Gate run #38 on commit `fa9f959248b373e213a982c19e6ca9789b4dafac`: Passed.
 - Checkout: Passed.
 - Locked dependency installation: Passed.
 - TypeScript check: Passed.
@@ -160,19 +171,19 @@ Important verification limitation:
 - Dashboard: `https://app.netlify.com/projects/engineering1-phase1-preview`.
 - Reserved URL: `https://engineering1-phase1-preview.netlify.app`.
 - The preview project is isolated from production and from the Phase 0 acceptance site.
-- Static preview deployment is live and Netlify reports deploy state `ready`.
+- Existing static preview deployment is live and Netlify reports deploy state `ready`.
 - Current live static deploy ID: `6a5ef317f8efcc78c652b2d0`.
-- P'Boy opened the site and verified the workspace shell visually.
-- The live static deploy does not include Netlify Functions or live AI because the project is not yet connected to the feature branch and `FAL_KEY` is not configured.
-- Updated static preview package: `Engineering1-Phase1A-3D-Gallery-preview-dist.zip`.
-- Updated static preview SHA-256: `d66880c14cfaed77bce67161bba1469240b057a26bedeba223a629183051d92b`.
-- Updated full source/functions package: `Engineering1-Phase1A-3D-Gallery-source.zip`.
-- Updated full source SHA-256: `a360eefd3429a1821f9fc4d327b95f83a2cce800b8734c4131a85a51cbdd89c9`.
-- The static package supports browser acceptance of the UI/manual fallback, but live AI requires a Functions-enabled source deployment and server-side `FAL_KEY`.
+- The current live deployment predates the demo-object increment.
+- New demo-enabled static preview package: `Engineering1-Phase1-Demo-Objects-preview-dist.zip`.
+- New demo-enabled static preview SHA-256: `1166e954255002376a57ccf310c3257079989e3ed117003f58a6dac4b1d4c3a7`.
+- New full source/functions package: `Engineering1-Phase1-Demo-Objects-source.zip`.
+- New full source SHA-256: `2d7671308451e0c13dac21cc2c0575847585d9f0bf61d39b3c4d9eac2d37191a`.
+- The static package supports browser acceptance of demo objects, UI/manual fallback, Gallery, Layout, and Runtime.
+- Live AI still requires a Functions-enabled source deployment and server-side `FAL_KEY`.
 
 Current status vocabulary:
 
-- Implemented: Yes, bounded Phase 1A–1C alpha vertical slice.
+- Implemented: Yes, bounded Phase 1A–1C alpha vertical slice plus demo content.
 - Tested locally: Yes, typecheck/lint/unit/build.
 - Tested on actual GitHub branch: Yes, Quality Gate passed.
 - Verified in an interactive browser: Partially; live shell verified, full workflow pending.
@@ -180,17 +191,19 @@ Current status vocabulary:
 - Merged to `develop`: No.
 - Merged to `main`: No.
 - Released: No.
-- Deployed: Static acceptance preview is live; Functions-enabled AI deployment is pending.
+- Deployed: Previous static acceptance preview is live; demo-enabled preview upload and Functions-enabled AI deployment are pending.
 
 ## Current gates and next work
 
 ### P0
 
-1. Perform full real-browser acceptance for upload, selection, manual environment removal, 3D proxy review, Gallery save/duplicate/delete/calibrate, layout insertion, and conveyor Runtime.
-2. Connect the Netlify project to `feature/phase1a-camera-gallery` so Functions are built from source.
-3. Configure `FAL_KEY` only in the isolated preview site's server environment.
-4. Test AI segmentation, generated GLB loading, orbit review, scale calibration, and save-to-Gallery using a real object.
-5. Verify cross-origin loading for provider-hosted GLB assets; use a server proxy or object storage adapter if direct CORS fails.
+1. Upload the demo-enabled static preview to the dedicated Netlify acceptance project.
+2. Verify the three demo Gallery objects, interactive 3D review, Layout placement, and four playable Runtime conveyor examples.
+3. Perform full real-browser acceptance for upload, selection, manual environment removal, 3D proxy review, Gallery save/duplicate/delete/calibrate, layout insertion, and conveyor Runtime.
+4. Connect the Netlify project to `feature/phase1a-camera-gallery` so Functions are built from source.
+5. Configure `FAL_KEY` only in the isolated preview site's server environment.
+6. Test AI segmentation, generated GLB loading, orbit review, scale calibration, and save-to-Gallery using a real object.
+7. Verify cross-origin loading for provider-hosted GLB assets; use a server proxy or object storage adapter if direct CORS fails.
 
 ### P1
 
