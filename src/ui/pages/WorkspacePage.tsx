@@ -13,6 +13,7 @@ import {
   getCapability,
   isCapabilityInteractive,
 } from '@/domain/capabilities/feature-capability'
+import { createDemoWorkspace } from '@/domain/demo/demo-workspace'
 import {
   createObjectAsset,
   duplicateObjectAsset,
@@ -87,9 +88,18 @@ const WORKSPACES: readonly {
 ]
 
 export function WorkspacePage() {
-  const [workspace, setWorkspace] = useState<WorkspaceId>('capture')
-  const [gallery, setGallery] = useState<ObjectAsset[]>(() => loadGallery())
-  const [layout, setLayout] = useState<LayoutProject>(() => loadLayout() ?? createLayoutProject())
+  const [initialWorkspace] = useState(() => {
+    const storedGallery = loadGallery()
+    const storedLayout = loadLayout()
+    const hasUserContent = storedGallery.length > 0
+      || Boolean(storedLayout && (storedLayout.objects.length > 0 || storedLayout.conveyors.length > 1))
+    return hasUserContent
+      ? { gallery: storedGallery, layout: storedLayout ?? createLayoutProject() }
+      : createDemoWorkspace()
+  })
+  const [workspace, setWorkspace] = useState<WorkspaceId>('gallery')
+  const [gallery, setGallery] = useState<ObjectAsset[]>(initialWorkspace.gallery)
+  const [layout, setLayout] = useState<LayoutProject>(initialWorkspace.layout)
   const [aiCapabilities, setAiCapabilities] = useState<AiCapabilities>({
     configured: false,
     provider: null,
@@ -131,6 +141,15 @@ export function WorkspacePage() {
     setGallery((current) => current.map((item) => item.id === asset.id ? markObjectAssetCalibrated(item) : item))
   }
 
+  function loadDemoProject() {
+    const hasCurrentWork = gallery.length > 0 || layout.objects.length > 0
+    if (hasCurrentWork && !window.confirm('Replace the current browser workspace with the Engineering1 demo project?')) return
+    const demo = createDemoWorkspace()
+    setGallery(demo.gallery)
+    setLayout(demo.layout)
+    setWorkspace('gallery')
+  }
+
   function downloadProject() {
     const text = exportWorkspace({ gallery, layout })
     const blob = new Blob([text], { type: 'application/json' })
@@ -153,6 +172,9 @@ export function WorkspacePage() {
           <span className={`provider-status ${aiCapabilities.configured ? 'provider-status--online' : ''}`}>
             AI provider: {aiCapabilities.configured ? aiCapabilities.provider : 'not configured'}
           </span>
+          <button className="button button--secondary" type="button" onClick={loadDemoProject}>
+            Load demo project
+          </button>
           <button className="button button--secondary" type="button" onClick={downloadProject}>
             Export project
           </button>
