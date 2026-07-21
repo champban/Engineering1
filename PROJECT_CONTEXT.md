@@ -86,7 +86,9 @@ A GitHub commit is not a deployment. Production requires P'Boy approval. Do not 
 Current branch: `feature/phase1a-camera-gallery`
 Base commit: `1cef419590c5dd6d802041805952e13d375836cf`
 Feature commit: `f975a998b7ae9cc8a0969ae83fefb937e5579777`
-Current branch head / CI-trigger commit: `685e4dd67cba2f0efc0adeaf525b62183afa1ea2`
+Current branch head: `685e4dd67cba2f0efc0adeaf525b62183afa1ea2`
+Draft stacked PR: `#2` targeting `develop`
+Merge dependency: PR #2 must not be merged before Phase 0 PR #1 is accepted and integrated.
 
 Implemented on the feature branch:
 
@@ -133,16 +135,28 @@ Local implementation verification completed in the working runtime:
 - Production build: Passed.
 - Build output: HTML 0.62 kB, CSS 13.25 kB, JavaScript 220.07 kB.
 
+Actual GitHub feature-branch verification:
+
+- GitHub Actions Quality Gate run #3: Passed.
+- Checkout: Passed.
+- Locked dependency installation: Passed.
+- TypeScript check: Passed.
+- ESLint: Passed.
+- Unit tests: Passed.
+- Production build: Passed.
+
 Important verification limitation:
 
-- The repository feature branch includes the newer Phase 0 QA test set, so the expected GitHub branch total is higher than the reconstructed local baseline. GitHub Actions verification on the actual branch remains pending.
 - A headless-browser screenshot/smoke attempt hung in the current runtime. Browser interaction is therefore not yet marked Verified.
+- AI segmentation and AI reconstruction are not yet verified against a real object because the isolated preview environment does not yet contain `FAL_KEY`.
 
 Current status vocabulary:
 
 - Implemented: Yes, bounded Phase 1A–1C alpha vertical slice.
 - Tested locally: Yes, typecheck/lint/unit/build.
+- Tested on actual GitHub branch: Yes, Quality Gate passed.
 - Verified in an interactive browser: No, pending.
+- AI provider verified with a real object: No, pending.
 - Merged to `develop`: No.
 - Merged to `main`: No.
 - Released: No.
@@ -152,16 +166,15 @@ Current status vocabulary:
 
 ### P0
 
-1. Run GitHub Actions against the actual Phase 1 feature branch and resolve any repository-baseline failures.
-2. Perform real-browser acceptance for upload, selection, manual environment removal, Gallery save, layout insertion, and conveyor Runtime.
-3. Configure `FAL_KEY` only in the isolated preview site's server environment.
-4. Deploy the feature branch to an isolated Netlify acceptance site with Functions enabled.
-5. Test AI segmentation and AI reconstruction with a real object.
+1. Perform real-browser acceptance for upload, selection, manual environment removal, Gallery save, layout insertion, and conveyor Runtime.
+2. Configure `FAL_KEY` only in the isolated preview site's server environment.
+3. Deploy the feature branch to an isolated Netlify acceptance site with Functions enabled.
+4. Test AI segmentation and AI reconstruction with a real object.
+5. Render the generated GLB directly inside the engineering viewport and verify scale/orientation.
 
 ### P1
 
 - Add robust multi-frame video selection and user correction of segmentation masks.
-- Add actual GLB rendering in the engineering viewport instead of linking only to the generated model.
 - Replace alpha browser storage with IndexedDB/Dexie and OPFS.
 - Add revision management and Draft → Calibrated → Verified → Released workflow.
 - Add object deletion, renaming, duplication, categories, folders, and gallery import/export.
