@@ -8,7 +8,7 @@ Implementation / architecture / QA owner: ChatGPT
 
 ## Product vision
 
-Engineering1 is an AI-native universal 2D/3D engineering, documentation, simulation, virtual-commissioning, and digital-twin platform. It must support arbitrary physical objects, not only factory equipment.
+Engineering1 is an AI-native universal 2D/3D engineering, documentation, simulation, virtual-commissioning, and digital-twin platform for arbitrary physical objects and production systems.
 
 Current programs:
 
@@ -17,21 +17,21 @@ Current programs:
 3. Phase 1B — Mechanical Layout Assembly.
 4. Phase 1C — Connected Transport Runtime and OEE/Waste alpha.
 5. Phase 2A — Equipment Engineering Data, BOM, utilities, procurement, cost, and controlled documents.
+6. Phase 2B — Professional Object Studio.
 
-## Architecture and key rules
+## Architecture and permanent rules
 
 - React, TypeScript strict mode, Vite, and direct Three.js viewport.
-- Right-handed coordinates: X length/left-right, Y vertical, Z depth/width; floor is XZ at Y = 0.
+- Right-handed coordinates: X length, Y vertical, Z width/depth; floor is XZ at Y = 0.
 - Internal length mm, mass kg, velocity m/s, angles degrees.
-- Reusable Gallery assets are separate from scene instances.
+- Gallery assets, scene instances, and Studio documents are separate records.
 - Local-first alpha storage; IndexedDB/Dexie and OPFS remain the production target.
-- Feature registry controls Available, Experimental, Planned, and Disabled states.
-- AI-generated geometry starts as Draft visual geometry, not verified CAD.
-- Manual dimensional calibration is mandatory before Verified or Released status.
-- Engineering-data completeness never implies formal safety, food-contact, electrical, technical, or release approval.
+- Available functions use active colour; incomplete functions remain grey and disabled.
+- AI-generated geometry begins as Draft visual geometry, not verified CAD.
 - GitHub is the source of truth.
-- Every preview includes two or three demo objects.
-- Every downloadable deliverable must include a direct file link.
+- Every preview includes ready-to-use demo objects.
+- Every downloadable deliverable is accompanied by a direct file link.
+- Do not claim SketchUp parity until face topology, editable edges/vertices, Push/Pull, Offset, UV seam editing, section planes, and boolean solids are implemented and verified.
 
 ## Branch and deployment discipline
 
@@ -51,101 +51,78 @@ Do not merge to `develop` or `main`, release, or deploy production without P'Boy
 - Branch: `feature/PH0-foundation-scaffold`.
 - Verified head: `1cef419590c5dd6d802041805952e13d375836cf`.
 - Draft PR #1 targets `develop`.
-- Progress: approximately 95%.
-- Merged / released / production deployed: No.
+- Progress approximately 95%; unmerged and unreleased.
 
 ### Phase 1A–1C
 
 - Branch: `feature/phase1a-camera-gallery`.
 - Verified head: `71ddb67e0f0ceb6ea08277da96d28c931ad0783c`.
 - Draft PR #2 targets `develop` and depends on PR #1.
+- Image/video capture, selection, manual extraction, AI adapters, calibrated proxy, GLB review, reusable Gallery, interactive Layout, connected conveyors, product animation, and OEE/Waste alpha are implemented.
+- Demo objects: Cookie Single Pack, Gearmotor 0.75 kW, and Landscape Tree Placeholder.
+- Quality Gate #71 passed; latest browser workflow acceptance is still pending.
 
-Implemented:
-
-- Image/video upload, frame extraction, box/point selection, and manual extraction.
-- Server-side AI segmentation and image-to-3D adapters with secret isolation.
-- Calibrated proxy and Three.js/GLB review.
-- Gallery lifecycle, search, duplicate, delete, calibrate, and layout insertion.
-- Layout drag, X/Z/elevation/rotation/scale, snap grids, duplicate/delete.
-- Straight, curve, incline, decline, spiral, and buffer conveyors.
-- Conveyor sequencing and elevation/product-type compatibility checks.
-- Individual and connected-line product animation.
-- OEE inputs and Availability, Performance, Quality, OEE, Waste, Good Count.
-
-Demo objects:
-
-- Cookie Single Pack — 95 × 55 × 15 mm.
-- Gearmotor 0.75 kW — 420 × 260 × 280 mm.
-- Landscape Tree Placeholder — 1800 × 1800 × 3500 mm.
-
-Quality:
-
-- Local TypeScript, ESLint, 73/73 tests, and build: Passed before Phase 2 branch creation.
-- GitHub Actions Quality Gate #71: Passed.
-- Interactive verification: partial; latest Layout/OEE build still requires acceptance.
-- AI real-object verification: pending server-side preview configuration.
-
-### Phase 2A — Equipment Engineering Data
+### Phase 2A–2B
 
 - Branch: `feature/phase2-equipment-engineering`.
-- Base: Phase 1 verified head `71ddb67e0f0ceb6ea08277da96d28c931ad0783c`.
-- Verified head: `516a627c51886e4cd2f20a5c12d94018175af235`.
-- Draft PR #3 targets `develop`.
-- PR #3 must not merge before PR #1 and PR #2 are accepted and integrated.
+- Current verified head: `6094d6e69f3b0278b5397980bb91b082a06a1dfc`.
+- Draft PR #3 targets `develop` and must wait for PR #1 and PR #2.
 
-Implemented:
+Phase 2A includes structured identification, capacity, utility, procurement, cost, BOM, spare classification, controlled documents, completeness checks, browser persistence, JSON export, and three demo engineering records.
 
-- Versioned engineering-record schema for equipment, product formats, infrastructure, and generic objects.
-- Tag, manufacturer, model, serial number, supplier, and procurement state.
-- Design rate, installed power, voltage, phases, frequency, and air demand.
-- Purchase cost, currency, and lead time.
-- Utility hook-up register.
-- BOM with part number, quantity, manufacturer, supplier, criticality, spare flag, unit cost, and currency.
-- Multi-currency BOM summary.
-- Controlled document register with type, revision, status, and reference URL.
-- Completeness/readiness calculation without claiming formal approval.
-- Browser persistence and JSON export.
-- Phase 2A application shell accessible from Phase 1.
-- Three demo records linked to the Cookie, Gearmotor, and Tree assets.
+Phase 2B Object Studio includes:
+
+- Full-screen Three.js engineering viewport.
+- Object Outliner, selection, visibility, and lock state.
+- Move, rotate, and scale transform gizmos.
+- Orbit and pan navigation.
+- Box, cylinder, sphere, and plane creation.
+- Millimetre dimensions, position, rotation, scale, and snap grids from 10 to 1000 mm.
+- Perspective and orthographic projection with isometric, front, right, and top views.
+- Engineering and packaging material presets.
+- Colour, metalness, roughness, opacity, texture upload, repeat U/V, rotation, and wrapping.
+- Studio, Sunlight, Warehouse, and Inspection lighting presets.
+- Two-point measuring with stored measurements.
+- Undo/Redo, local persistence, JSON export, and Gallery dimension/material synchronization.
+- Three Gallery demo objects populate the initial Studio document.
+
+Limitations:
+
+- Current alpha edits whole objects and whole-object materials.
+- Face/edge/vertex editing, Push/Pull, Offset, UV seams, section planes, and boolean solids are planned and disabled.
+- Browser acceptance is pending.
 
 Quality:
 
-- Local TypeScript strict check: Passed.
-- Local ESLint: Passed.
-- Local tests: 76/76 Passed across 11 files.
-- Local production build: Passed.
-- Build: HTML 0.62 kB, CSS 21.67 kB, main JS 276.06 kB, lazy Three.js chunk 588.90 kB before gzip.
-- GitHub Actions Quality Gate #78: Passed.
-- Checkout, locked install, typecheck, lint, tests, and build: Passed.
-- Interactive browser verification: Pending.
-- Merged / released / deployed: No.
+- GitHub Actions Quality Gate #116: Passed.
+- Locked installation, TypeScript, ESLint, unit tests, production build, preview packaging, and source packaging passed.
+- Preview SHA-256: `b042288b8b43a8b5e16b0cc181a54fc16f01ab6bf30a90c68fbe50520fe6da7a`.
+- Source SHA-256: `4bebb63155c6c5e1d34bf9bb8e22fe3444f210450916c4b879bab5457a51c7db`.
+- Merged, released, deployed: No.
 
 ## Netlify acceptance environment
 
 - Project: `engineering1-phase1-preview`.
 - Site ID: `0f15372e-afba-4361-b170-800eb29ea5f5`.
 - URL: `https://engineering1-phase1-preview.netlify.app`.
-- Existing deploy ID: `6a5ef317f8efcc78c652b2d0`, state ready.
-- Existing live build predates the latest Layout/OEE and Phase 2A increments.
-- Live AI still requires a source/functions deployment and a server-only provider variable.
+- Existing live deployment predates Object Studio.
+- Latest static package: `Engineering1-Object-Studio-preview-dist.zip`.
+- Latest source package: `Engineering1-Object-Studio-source.zip`.
 
 ## Current gates
 
-1. Package and upload the Phase 2A static acceptance build.
-2. Verify demo engineering records and Overview, Utilities, BOM & Cost, Documents, persistence, completeness, and JSON export.
-3. Verify latest Phase 1 Gallery, Layout, connected Runtime, and OEE in the same build.
-4. Connect the isolated Netlify project to source for Functions-enabled builds.
-5. Configure the AI provider only in the Netlify server environment.
-6. Test real-object segmentation, reconstruction, GLB review, calibration, and Gallery save.
+1. Upload the Object Studio preview to the dedicated Netlify project.
+2. Verify large viewport rendering and the three demo objects.
+3. Verify transforms, primitives, dimensions, snapping, materials, textures, lighting, measuring, camera modes, persistence, export, and Gallery synchronization.
+4. Complete the later topology milestone before claiming SketchUp-level modelling parity.
 
 ## Next backlog
 
-- Phase 2B machine behavior: input/output ports, nominal/constrained rates, states, blocking, starving, accumulation, reject, and waste events.
+- Face/edge/vertex selection, Push/Pull, Offset, section planes, boolean solids, UV seam editor, face-specific materials, grouping, and components.
+- Machine behavior: input/output ports, rates, blocking, starving, accumulation, reject, and waste events.
 - Revision history and Draft → Calibrated → Verified → Released workflow.
 - IndexedDB/Dexie and OPFS.
 - OEE event history, downtime reasons, waste categories, Pareto, and reports.
-- Maintenance, recommended spares, PM strategy, and lifecycle cost.
-- Process, thermal, electrical, HMI/SCADA, PLC simulation, and virtual commissioning under verified safety/security boundaries.
 
 ## Reporting
 
