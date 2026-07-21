@@ -22,7 +22,7 @@ import { loadGallery } from '@/storage/workspace-store'
 import { WorkspacePage } from '@/ui/pages/WorkspacePage'
 import { ObjectStudioPage } from '@/ui/pages/ObjectStudioPage'
 
-type AppMode = 'phase1' | 'phase2' | 'studio' | 'studio' | 'studio' | 'studio'
+type AppMode = 'phase1' | 'phase2' | 'studio'
 type DataSection = 'overview' | 'utilities' | 'bom' | 'documents'
 
 const CURRENCIES: readonly CurrencyCode[] = ['EUR', 'USD', 'THB']
