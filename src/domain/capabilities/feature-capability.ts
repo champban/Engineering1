@@ -21,6 +21,12 @@ export const FEATURE_CAPABILITIES: readonly FeatureCapability[] = [
   { id: 'layout.assembly', label: 'Mechanical layout assembly', status: 'experimental', targetPhase: '1B' },
   { id: 'runtime.transport', label: 'Transport visual runtime', status: 'experimental', targetPhase: '1C' },
   {
+    id: 'engineering.equipment-data',
+    label: 'Equipment engineering data, BOM, and documents',
+    status: 'experimental',
+    targetPhase: '2A',
+  },
+  {
     id: 'hmi.editor',
     label: 'HMI/SCADA editor',
     status: 'planned',
