@@ -1,0 +1,38 @@
+name: Apply connected runtime increment
+
+on:
+  push:
+    branches:
+      - feature/phase1a-camera-gallery
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          package-manager-cache: false
+      - name: Apply source changes
+        run: node scripts/apply-connected-runtime.mjs
+      - name: Verify increment
+        run: |
+          npm ci
+          npm run typecheck
+          npm run lint
+          npm test
+          npm run build
+      - name: Commit increment
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/domain/layout/layout.ts src/ui/pages/WorkspacePage.tsx src/test/unit/phase1c-transport.test.ts
+          git commit -m "feat: add continuous multi-conveyor runtime [skip ci]"
+          git push
