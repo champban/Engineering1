@@ -1,0 +1,72 @@
+name: Quality Gate
+
+on:
+  pull_request:
+    branches:
+      - develop
+      - main
+  push:
+    branches:
+      - develop
+      - 'feature/**'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Typecheck, lint, test, and build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          package-manager-cache: false
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: TypeScript check
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Production build
+        run: npm run build
+
+      - name: Stage source package
+        run: |
+          mkdir -p package/source
+          rsync -a \
+            --exclude '.git' \
+            --exclude 'node_modules' \
+            --exclude 'dist' \
+            --exclude 'package' \
+            ./ package/source/
+
+      - name: Upload Netlify drag-and-drop preview
+        uses: actions/upload-artifact@v4
+        with:
+          name: Engineering1-Object-Studio-preview-dist
+          path: dist/
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload full source package
+        uses: actions/upload-artifact@v4
+        with:
+          name: Engineering1-Object-Studio-source
+          path: package/source/
+          if-no-files-found: error
+          retention-days: 30

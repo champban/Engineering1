@@ -1,0 +1,34 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+  functions = "netlify/functions"
+
+[functions]
+  node_bundler = "esbuild"
+
+[[redirects]]
+  from = "/api/ai-capabilities"
+  to = "/.netlify/functions/ai-capabilities"
+  status = 200
+
+[[redirects]]
+  from = "/api/ai-segment"
+  to = "/.netlify/functions/ai-segment"
+  status = 200
+
+[[redirects]]
+  from = "/api/ai-reconstruct"
+  to = "/.netlify/functions/ai-reconstruct"
+  status = 200
+
+[[redirects]]
+  from = "/api/ai-job-status"
+  to = "/.netlify/functions/ai-job-status"
+  status = 200
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(self), microphone=(), geolocation=()"
