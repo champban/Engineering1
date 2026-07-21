@@ -24,11 +24,15 @@ import {
 } from '@/domain/gallery/object-asset'
 import {
   buildConnectedRoute,
+  canvasPointToWorld,
   connectedRoutePolyline,
   conveyorPathPolyline,
   createConveyor,
   createLayoutProject,
   createSceneInstance,
+  duplicateSceneInstance,
+  evaluateConveyorConnections,
+  reorderConveyor,
   sampleConnectedRoute,
   sampleConveyorPath,
   type ConveyorDefinition,
@@ -683,33 +687,107 @@ function LayoutWorkspace({
   gallery: ObjectAsset[]
   onInsert: (asset: ObjectAsset) => void
 }) {
+  const canvasRef = useRef<HTMLDivElement>(null)
+  const dragRef = useRef<{ objectId: string; offsetXPx: number; offsetYPx: number } | null>(null)
   const [selectedObjectId, setSelectedObjectId] = useState<string | null>(null)
   const [selectedConveyorId, setSelectedConveyorId] = useState<string>(() => layout.conveyors[0]?.id ?? '')
+  const [snapEnabled, setSnapEnabled] = useState(true)
+  const [gridMm, setGridMm] = useState(250)
   const selectedObject = layout.objects.find((item) => item.id === selectedObjectId) ?? null
   const selectedConveyor = layout.conveyors.find((item) => item.id === selectedConveyorId) ?? layout.conveyors[0] ?? null
+  const connectedRoute = useMemo(() => buildConnectedRoute(layout.conveyors, 64), [layout.conveyors])
+  const connectionChecks = useMemo(() => evaluateConveyorConnections(layout.conveyors), [layout.conveyors])
+
+  function commit(next: LayoutProject) {
+    onChange({ ...next, updatedAt: new Date().toISOString() })
+  }
 
   function addConveyor(type: ConveyorType) {
     const conveyor = createConveyor(type)
-    onChange({ ...layout, conveyors: [...layout.conveyors, conveyor], updatedAt: new Date().toISOString() })
+    commit({ ...layout, conveyors: [...layout.conveyors, conveyor] })
+    setSelectedObjectId(null)
     setSelectedConveyorId(conveyor.id)
   }
 
   function updateObject(patch: Partial<SceneObjectInstance>) {
     if (!selectedObject) return
-    onChange({
+    updateObjectById(selectedObject.id, patch)
+  }
+
+  function updateObjectById(objectId: string, patch: Partial<SceneObjectInstance>) {
+    commit({
       ...layout,
-      objects: layout.objects.map((item) => item.id === selectedObject.id ? { ...item, ...patch } : item),
-      updatedAt: new Date().toISOString(),
+      objects: layout.objects.map((item) => item.id === objectId ? { ...item, ...patch } : item),
     })
   }
 
   function updateConveyor(patch: Partial<ConveyorDefinition>) {
     if (!selectedConveyor) return
-    onChange({
+    commit({
       ...layout,
       conveyors: layout.conveyors.map((item) => item.id === selectedConveyor.id ? { ...item, ...patch } : item),
-      updatedAt: new Date().toISOString(),
     })
+  }
+
+  function beginObjectDrag(event: ReactPointerEvent<HTMLButtonElement>, instance: SceneObjectInstance) {
+    const targetRect = event.currentTarget.getBoundingClientRect()
+    dragRef.current = {
+      objectId: instance.id,
+      offsetXPx: event.clientX - targetRect.left,
+      offsetYPx: event.clientY - targetRect.top,
+    }
+    setSelectedObjectId(instance.id)
+    setSelectedConveyorId('')
+    event.currentTarget.setPointerCapture(event.pointerId)
+    event.preventDefault()
+  }
+
+  function moveObject(event: ReactPointerEvent<HTMLButtonElement>, objectId: string) {
+    const drag = dragRef.current
+    const canvas = canvasRef.current
+    if (!drag || drag.objectId !== objectId || !canvas) return
+    const rect = canvas.getBoundingClientRect()
+    const world = canvasPointToWorld(
+      {
+        xPx: event.clientX - rect.left - drag.offsetXPx,
+        yPx: event.clientY - rect.top - drag.offsetYPx,
+      },
+      { widthPx: rect.width, heightPx: rect.height },
+      snapEnabled ? gridMm : 1,
+    )
+    updateObjectById(objectId, world)
+  }
+
+  function finishObjectDrag(event: ReactPointerEvent<HTMLButtonElement>) {
+    dragRef.current = null
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId)
+    }
+  }
+
+  function duplicateSelectedObject() {
+    if (!selectedObject) return
+    const duplicate = duplicateSceneInstance(selectedObject, snapEnabled ? gridMm : 250)
+    commit({ ...layout, objects: [...layout.objects, duplicate] })
+    setSelectedObjectId(duplicate.id)
+  }
+
+  function deleteSelectedObject() {
+    if (!selectedObject) return
+    commit({ ...layout, objects: layout.objects.filter((item) => item.id !== selectedObject.id) })
+    setSelectedObjectId(null)
+  }
+
+  function moveSelectedConveyor(direction: -1 | 1) {
+    if (!selectedConveyor) return
+    commit({ ...layout, conveyors: reorderConveyor(layout.conveyors, selectedConveyor.id, direction) })
+  }
+
+  function deleteSelectedConveyor() {
+    if (!selectedConveyor) return
+    const next = layout.conveyors.filter((item) => item.id !== selectedConveyor.id)
+    commit({ ...layout, conveyors: next })
+    setSelectedConveyorId(next[0]?.id ?? '')
   }
 
   return (
@@ -718,40 +796,87 @@ function LayoutWorkspace({
         <div>
           <p className="eyebrow">Phase 1B</p>
           <h2>Mechanical Layout Editor</h2>
-          <p>Insert reusable Gallery objects, position them on a factory grid, and add transport modules.</p>
+          <p>Drag reusable objects on a dimensioned factory grid, snap them to engineering increments, and sequence connected transport modules.</p>
         </div>
-        <span className="phase-badge phase-badge--alpha">Alpha</span>
+        <span className="phase-badge phase-badge--alpha">Layout Alpha+</span>
       </div>
 
       <div className="layout-toolbar">
+        <button
+          className={`tool-button ${snapEnabled ? 'tool-button--active' : ''}`}
+          onClick={() => setSnapEnabled((value) => !value)}
+          type="button"
+        >
+          Snap {snapEnabled ? 'on' : 'off'}
+        </button>
+        <label className="layout-grid-control">
+          Grid
+          <select disabled={!snapEnabled} onChange={(event) => setGridMm(Number(event.target.value))} value={gridMm}>
+            <option value={100}>100 mm</option>
+            <option value={250}>250 mm</option>
+            <option value={500}>500 mm</option>
+            <option value={1000}>1000 mm</option>
+          </select>
+        </label>
         {(['straight', 'curve', 'incline', 'decline', 'spiral', 'buffer'] as const).map((type) => (
           <button className="tool-button" key={type} onClick={() => addConveyor(type)} type="button">+ {type}</button>
         ))}
       </div>
 
       <div className="editor-layout">
-        <div className="layout-canvas" aria-label="Mechanical layout canvas">
+        <div
+          className="layout-canvas"
+          aria-label="Mechanical layout canvas"
+          onClick={() => { setSelectedObjectId(null); setSelectedConveyorId('') }}
+          ref={canvasRef}
+        >
+          <div className="layout-axis layout-axis--x">X 0–10,000 mm</div>
+          <div className="layout-axis layout-axis--z">Z 0–7,000 mm</div>
           <svg className="layout-conveyors" viewBox="0 0 600 380" preserveAspectRatio="none">
-            {layout.conveyors.map((conveyor, index) => (
-              <g key={conveyor.id} transform={`translate(${(index % 2) * 10}, ${(index % 3) * 12})`}>
-                <polyline
-                  className={conveyor.id === selectedConveyor?.id ? 'conveyor-line conveyor-line--selected' : 'conveyor-line'}
-                  onClick={() => setSelectedConveyorId(conveyor.id)}
-                  points={conveyorPathPolyline(conveyor)}
-                />
-              </g>
-            ))}
+            {connectedRoute.segments.map((segment, index) => {
+              const conveyor = layout.conveyors.find((item) => item.id === segment.conveyorId)
+              const check = connectionChecks[index]
+              return (
+                <g key={segment.conveyorId}>
+                  <polyline
+                    className={segment.conveyorId === selectedConveyor?.id ? 'conveyor-line conveyor-line--selected' : 'conveyor-line'}
+                    onClick={(event) => {
+                      event.stopPropagation()
+                      setSelectedObjectId(null)
+                      setSelectedConveyorId(segment.conveyorId)
+                    }}
+                    points={segment.points.map((point) => `${point.x},${point.y}`).join(' ')}
+                  />
+                  <text className="conveyor-sequence-label" x={segment.start.x + 8} y={segment.start.y - 10}>
+                    {index + 1}. {conveyor?.type ?? 'module'}
+                  </text>
+                  {check && (
+                    <circle
+                      className={check.compatible ? 'conveyor-connector conveyor-connector--ok' : 'conveyor-connector conveyor-connector--warning'}
+                      cx={segment.end.x}
+                      cy={segment.end.y}
+                      r="6"
+                    />
+                  )}
+                </g>
+              )
+            })}
           </svg>
           {layout.objects.map((instance) => (
             <button
               className={`scene-object ${instance.id === selectedObjectId ? 'scene-object--selected' : ''}`}
               key={instance.id}
-              onClick={() => setSelectedObjectId(instance.id)}
+              onClick={(event) => { event.stopPropagation(); setSelectedObjectId(instance.id); setSelectedConveyorId('') }}
+              onPointerDown={(event) => beginObjectDrag(event, instance)}
+              onPointerMove={(event) => moveObject(event, instance.id)}
+              onPointerUp={finishObjectDrag}
+              onPointerCancel={finishObjectDrag}
               style={{
                 left: `${clamp(instance.xMm / 10000, 0, 0.88) * 100}%`,
                 top: `${clamp(instance.zMm / 7000, 0, 0.82) * 100}%`,
                 transform: `rotate(${instance.rotationDeg}deg) scale(${instance.scale})`,
               }}
+              title={`${instance.name} · X ${instance.xMm} · Z ${instance.zMm} mm`}
               type="button"
             >
               <img alt="" src={instance.thumbnailDataUrl} />
@@ -770,6 +895,11 @@ function LayoutWorkspace({
               <NumberField label="Z (mm)" value={selectedObject.zMm} onChange={(value) => updateObject({ zMm: value })} />
               <NumberField label="Elevation (mm)" value={selectedObject.elevationMm} onChange={(value) => updateObject({ elevationMm: value })} />
               <NumberField label="Rotation (deg)" value={selectedObject.rotationDeg} onChange={(value) => updateObject({ rotationDeg: value })} />
+              <NumberField label="Scale" step={0.05} value={selectedObject.scale} onChange={(value) => updateObject({ scale: Math.max(0.1, value) })} />
+              <div className="button-row">
+                <button className="button button--secondary" onClick={duplicateSelectedObject} type="button">Duplicate</button>
+                <button className="button button--danger" onClick={deleteSelectedObject} type="button">Delete</button>
+              </div>
             </div>
           ) : selectedConveyor ? (
             <div className="stacked-fields">
@@ -783,10 +913,33 @@ function LayoutWorkspace({
               <button className="button button--secondary" onClick={() => updateConveyor({ direction: selectedConveyor.direction === 1 ? -1 : 1 })} type="button">
                 Direction: {selectedConveyor.direction === 1 ? 'Forward →' : 'Reverse ←'}
               </button>
+              <div className="button-row">
+                <button className="button button--secondary" onClick={() => moveSelectedConveyor(-1)} type="button">Move earlier</button>
+                <button className="button button--secondary" onClick={() => moveSelectedConveyor(1)} type="button">Move later</button>
+                <button className="button button--danger" onClick={deleteSelectedConveyor} type="button">Delete</button>
+              </div>
             </div>
           ) : (
             <p>Select an object or conveyor.</p>
           )}
+
+          <h3>Conveyor sequence</h3>
+          <div className="conveyor-sequence-list">
+            {layout.conveyors.map((conveyor, index) => {
+              const check = connectionChecks[index]
+              return (
+                <button
+                  className={conveyor.id === selectedConveyor?.id ? 'conveyor-sequence-item conveyor-sequence-item--selected' : 'conveyor-sequence-item'}
+                  key={conveyor.id}
+                  onClick={() => { setSelectedObjectId(null); setSelectedConveyorId(conveyor.id) }}
+                  type="button"
+                >
+                  <span>{index + 1}. {conveyor.type}</span>
+                  <small>{check ? check.compatible ? 'connected' : `${check.elevationGapMm} mm gap` : 'line end'}</small>
+                </button>
+              )
+            })}
+          </div>
 
           <h3>Quick insert</h3>
           <div className="quick-insert">
