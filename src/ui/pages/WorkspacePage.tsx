@@ -23,10 +23,13 @@ import {
   type ObjectGeometryType,
 } from '@/domain/gallery/object-asset'
 import {
+  buildConnectedRoute,
+  connectedRoutePolyline,
   conveyorPathPolyline,
   createConveyor,
   createLayoutProject,
   createSceneInstance,
+  sampleConnectedRoute,
   sampleConveyorPath,
   type ConveyorDefinition,
   type ConveyorType,
@@ -800,22 +803,30 @@ function LayoutWorkspace({
 }
 
 function RuntimeWorkspace({ conveyors }: { conveyors: ConveyorDefinition[] }) {
-  const [selectedId, setSelectedId] = useState<string>(() => conveyors[0]?.id ?? '')
+  const CONNECTED_LINE_ID = '__connected-line__'
+  const [selectedId, setSelectedId] = useState<string>(() => conveyors.length > 1 ? CONNECTED_LINE_ID : conveyors[0]?.id ?? '')
   const [playing, setPlaying] = useState(false)
   const [progress, setProgress] = useState(0)
   const [speedMultiplier, setSpeedMultiplier] = useState(1)
   const frameRef = useRef<number | null>(null)
   const timeRef = useRef<number | null>(null)
-  const selected = conveyors.find((item) => item.id === selectedId) ?? conveyors[0] ?? null
+  const connectedMode = selectedId === CONNECTED_LINE_ID && conveyors.length > 1
+  const selected = connectedMode ? null : conveyors.find((item) => item.id === selectedId) ?? conveyors[0] ?? null
+  const route = useMemo(() => buildConnectedRoute(conveyors), [conveyors])
+  const nominalLengthM = connectedMode
+    ? Math.max(0.5, route.totalLengthMm / 1000)
+    : Math.max(0.5, (selected?.lengthMm ?? 500) / 1000)
+  const nominalSpeedMps = connectedMode
+    ? Math.max(0.01, conveyors.reduce((sum, conveyor) => sum + conveyor.speedMps, 0) / Math.max(1, conveyors.length))
+    : Math.max(0.01, selected?.speedMps ?? 0.1)
 
   useEffect(() => {
-    if (!playing || !selected) return
+    if (!playing || (!selected && !connectedMode)) return
     const tick = (time: number) => {
       const previous = timeRef.current ?? time
       const deltaSeconds = Math.min(0.05, (time - previous) / 1000)
       timeRef.current = time
-      const nominalLengthM = Math.max(0.5, selected.lengthMm / 1000)
-      setProgress((current) => (current + deltaSeconds * selected.speedMps * speedMultiplier / nominalLengthM) % 1)
+      setProgress((current) => (current + deltaSeconds * nominalSpeedMps * speedMultiplier / nominalLengthM) % 1)
       frameRef.current = requestAnimationFrame(tick)
     }
     frameRef.current = requestAnimationFrame(tick)
@@ -824,13 +835,28 @@ function RuntimeWorkspace({ conveyors }: { conveyors: ConveyorDefinition[] }) {
       frameRef.current = null
       timeRef.current = null
     }
-  }, [playing, selected, speedMultiplier])
+  }, [connectedMode, nominalLengthM, nominalSpeedMps, playing, selected, speedMultiplier])
 
-  if (!selected) return <div className="empty-state">Create a conveyor in Layout Editor first.</div>
-  const products = Array.from({ length: selected.type === 'buffer' ? Math.min(16, selected.bufferCapacity) : 7 }, (_, index) => {
-    const point = sampleConveyorPath(selected, progress - index * (selected.type === 'buffer' ? 0.035 : 0.11))
-    return { ...point, id: `${selected.id}-${index}` }
+  if (!selected && !connectedMode) return <div className="empty-state">Create a conveyor in Layout Editor first.</div>
+
+  const productCount = connectedMode
+    ? Math.min(18, Math.max(8, conveyors.length * 4))
+    : selected?.type === 'buffer' ? Math.min(16, selected.bufferCapacity) : 7
+  const spacing = connectedMode ? 0.055 : selected?.type === 'buffer' ? 0.035 : 0.11
+  const products = Array.from({ length: productCount }, (_, index) => {
+    const point = connectedMode
+      ? sampleConnectedRoute(conveyors, progress - index * spacing)
+      : sampleConveyorPath(selected as ConveyorDefinition, progress - index * spacing)
+    return { ...point, id: `${selectedId}-${index}` }
   })
+
+  const runtimeTitle = connectedMode ? 'CONNECTED LINE' : (selected as ConveyorDefinition).type.toUpperCase()
+  const directionLabel = connectedMode ? 'AUTO ROUTE' : (selected as ConveyorDefinition).direction === 1 ? 'FORWARD' : 'REVERSE'
+  const entryElevation = connectedMode ? conveyors[0]?.entryElevationMm ?? 0 : (selected as ConveyorDefinition).entryElevationMm
+  const exitElevation = connectedMode ? conveyors[conveyors.length - 1]?.exitElevationMm ?? 0 : (selected as ConveyorDefinition).exitElevationMm
+  const capacity = connectedMode
+    ? conveyors.reduce((sum, conveyor) => sum + conveyor.bufferCapacity, 0)
+    : (selected as ConveyorDefinition).bufferCapacity
 
   return (
     <section className="workspace-section">
@@ -838,15 +864,16 @@ function RuntimeWorkspace({ conveyors }: { conveyors: ConveyorDefinition[] }) {
         <div>
           <p className="eyebrow">Phase 1C</p>
           <h2>Transport Visual Runtime</h2>
-          <p>Verify direction and movement of cookie packs, cartons or cases through straight, curved, elevated, spiral and buffer paths.</p>
+          <p>Verify individual modules or run the full connected conveyor route as one continuous product-flow line.</p>
         </div>
         <span className="phase-badge phase-badge--alpha">Runtime Alpha</span>
       </div>
 
       <div className="runtime-toolbar">
         <label>
-          <span>Conveyor</span>
-          <select onChange={(event) => { setSelectedId(event.target.value); setProgress(0) }} value={selected.id}>
+          <span>Route</span>
+          <select onChange={(event) => { setSelectedId(event.target.value); setProgress(0) }} value={connectedMode ? CONNECTED_LINE_ID : (selected as ConveyorDefinition).id}>
+            {conveyors.length > 1 && <option value={CONNECTED_LINE_ID}>Connected line ({conveyors.length} modules)</option>}
             {conveyors.map((conveyor) => <option key={conveyor.id} value={conveyor.id}>{conveyor.name}</option>)}
           </select>
         </label>
@@ -864,14 +891,14 @@ function RuntimeWorkspace({ conveyors }: { conveyors: ConveyorDefinition[] }) {
       </div>
 
       <div className="runtime-stage">
-        <svg role="img" aria-label={`${selected.type} conveyor transporting ${selected.productType}`} viewBox="0 0 600 380">
+        <svg role="img" aria-label={`${runtimeTitle} transporting products`} viewBox="0 0 600 380">
           <defs>
             <linearGradient id="belt" x1="0" x2="1">
               <stop offset="0" stopColor="currentColor" stopOpacity="0.25" />
               <stop offset="1" stopColor="currentColor" stopOpacity="0.7" />
             </linearGradient>
           </defs>
-          <polyline className="runtime-belt" points={conveyorPathPolyline(selected)} />
+          <polyline className="runtime-belt" points={connectedMode ? connectedRoutePolyline(conveyors) : conveyorPathPolyline(selected as ConveyorDefinition)} />
           {products.map((product) => (
             <g className="runtime-product" key={product.id} transform={`translate(${product.x} ${product.y})`}>
               <rect x="-14" y="-9" width="28" height="18" rx="4" />
@@ -879,10 +906,10 @@ function RuntimeWorkspace({ conveyors }: { conveyors: ConveyorDefinition[] }) {
             </g>
           ))}
           <text className="runtime-label" x="24" y="28">
-            {selected.type.toUpperCase()} · {selected.direction === 1 ? 'FORWARD' : 'REVERSE'} · {selected.speedMps.toFixed(2)} m/s
+            {runtimeTitle} · {directionLabel} · {nominalSpeedMps.toFixed(2)} m/s
           </text>
           <text className="runtime-label" x="24" y="350">
-            Entry {selected.entryElevationMm} mm → Exit {selected.exitElevationMm} mm · Capacity {selected.bufferCapacity}
+            Entry {entryElevation} mm → Exit {exitElevation} mm · Capacity {capacity}
           </text>
         </svg>
       </div>

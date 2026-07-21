@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { createConveyor, sampleConveyorPath } from '@/domain/layout/layout'
+import { buildConnectedRoute, createConveyor, sampleConnectedRoute, sampleConveyorPath } from '@/domain/layout/layout'
 
 describe('Phase 1C transport path sampling', () => {
   it('moves a straight conveyor product from left to right', () => {
@@ -30,5 +30,23 @@ describe('Phase 1C transport path sampling', () => {
     const secondRowEnd = sampleConveyorPath(conveyor, 0.39)
     expect(firstRowEnd.x).toBeGreaterThan(firstRowStart.x)
     expect(secondRowEnd.x).toBeLessThan(firstRowEnd.x)
+  })
+})
+
+
+describe('Phase 1C connected conveyor route', () => {
+  it('joins multiple conveyor modules into one continuous route', () => {
+    const route = buildConnectedRoute([createConveyor('straight'), createConveyor('curve'), createConveyor('buffer')], 20)
+    expect(route.points.length).toBeGreaterThan(40)
+    expect(route.totalLengthMm).toBe(16000)
+    expect(route.segmentIds.length).toBe(route.points.length)
+  })
+
+  it('samples connected-route progress as a continuous loop', () => {
+    const conveyors = [createConveyor('straight'), createConveyor('incline')]
+    const start = sampleConnectedRoute(conveyors, 0)
+    const wrapped = sampleConnectedRoute(conveyors, 1)
+    expect(wrapped.x).toBeCloseTo(start.x)
+    expect(wrapped.y).toBeCloseTo(start.y)
   })
 })

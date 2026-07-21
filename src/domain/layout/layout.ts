@@ -101,6 +101,56 @@ export function conveyorPathPolyline(conveyor: ConveyorDefinition, samples = 120
   }).join(' ')
 }
 
+
+export interface ConnectedRoute {
+  points: PathPoint[]
+  segmentIds: string[]
+  totalLengthMm: number
+}
+
+export function buildConnectedRoute(conveyors: ConveyorDefinition[], samplesPerConveyor = 80): ConnectedRoute {
+  if (!conveyors.length) return { points: [], segmentIds: [], totalLengthMm: 0 }
+  const points: PathPoint[] = []
+  const segmentIds: string[] = []
+  let cursorX = 36
+  let cursorY = 190
+  conveyors.forEach((conveyor, conveyorIndex) => {
+    const count = Math.max(2, samplesPerConveyor)
+    const raw = Array.from({ length: count }, (_, index) => sampleConveyorPath(conveyor, index / (count - 1)))
+    const start = raw[0]
+    const translated = raw.map((point) => ({ x: point.x - start.x + cursorX, y: point.y - start.y + cursorY }))
+    if (conveyorIndex > 0) translated.shift()
+    points.push(...translated)
+    segmentIds.push(...translated.map(() => conveyor.id))
+    const end = translated[translated.length - 1]
+    cursorX = end.x
+    cursorY = end.y
+  })
+  return {
+    points,
+    segmentIds,
+    totalLengthMm: conveyors.reduce((sum, conveyor) => sum + Math.max(100, conveyor.lengthMm), 0),
+  }
+}
+
+export function connectedRoutePolyline(conveyors: ConveyorDefinition[], samplesPerConveyor = 80): string {
+  return buildConnectedRoute(conveyors, samplesPerConveyor).points.map((point) => `${point.x},${point.y}`).join(' ')
+}
+
+export function sampleConnectedRoute(conveyors: ConveyorDefinition[], progress: number): PathPoint {
+  const route = buildConnectedRoute(conveyors)
+  if (!route.points.length) return { x: 0, y: 0 }
+  if (route.points.length === 1) return route.points[0]
+  const normalized = normalizeProgress(progress)
+  const scaled = normalized * (route.points.length - 1)
+  const lower = Math.floor(scaled)
+  const upper = Math.min(route.points.length - 1, lower + 1)
+  const blend = scaled - lower
+  const a = route.points[lower]
+  const b = route.points[upper]
+  return { x: a.x + (b.x - a.x) * blend, y: a.y + (b.y - a.y) * blend }
+}
+
 function normalizeProgress(progress: number): number {
   const wrapped = progress % 1
   return wrapped < 0 ? wrapped + 1 : wrapped
