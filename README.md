@@ -1,57 +1,47 @@
-# Engineering1 — 3D Engineering Object & Simulation Platform
+# Engineering1 — AI-Native 3D Object, Layout & Simulation Platform
 
-Browser-first, offline-capable 3D engineering platform. This branch
-(`feature/PH0-foundation-scaffold`) contains the **Phase 0 foundation
-scaffold** produced under work order `CLAUDE_WORK_ORDER_PH0_007_008.md`.
+Engineering1 is a browser-first, local-first engineering platform. The current stacked Phase 1 alpha prioritizes converting arbitrary real-world objects from camera images or video frames into reusable Gallery assets, then placing those assets in mechanical layouts and transport simulations.
 
-## Scope of this branch (PH0-007 + PH0-008)
+## Current alpha workflow
 
-- React + TypeScript (strict) + Vite application scaffold.
-- Core Object Schema V1 as Zod runtime schemas with inferred TypeScript types.
-- Product Orientation schema + projection/pitch/throughput/tolerance utilities.
-- Motion-ready and Dynamic Relationship schemas with validators.
-- Draft / Verified / Released validation engine with human-readable errors.
-- Four valid fixtures (cookie, motor, belt, platform) and thirteen invalid
-  fixtures.
-- Interface-only viewport, renderer, storage, and package serializer boundaries.
-- Vitest unit tests. ESLint. Production build.
+1. Upload an image or video.
+2. Select the target object and exclude its surroundings.
+3. Use manual extraction or server-side AI segmentation.
+4. Create a calibrated proxy or request AI image-to-3D reconstruction.
+5. Review the object in an interactive Three.js viewport.
+6. Save the reusable Engineering Object to the Gallery.
+7. Duplicate, delete, calibrate, or insert the asset into a layout.
+8. Add conveyor paths and inspect product transport in Visual Runtime.
 
-Not in scope: 3D editor, geometry creation, photogrammetry, materials editor,
-measurement tools, assembly tools, animation, simulation, persistence
-implementation, Netlify production deployment.
+## Current branch scope
+
+- Phase 1A — Camera/Image/Video to reusable Object Gallery.
+- Phase 1B — Mechanical Layout Assembly alpha.
+- Phase 1C — Conveyor Transport Visual Runtime alpha.
+- Direct Three.js GLB review with orbit/zoom and calibrated proxy fallback.
+- Server-side AI provider adapters. Provider secrets are never exposed in browser code.
+- Planned HMI/SCADA and PLC functions remain visible, grey, and disabled.
 
 ## Commands
 
 ```bash
-npm install       # install dependencies
-npm run typecheck # tsc strict, no emit
-npm run lint      # eslint
-npm test          # vitest run
-npm run build     # tsc -b && vite build
-npm run dev       # local dev server
+npm ci
+npm run typecheck
+npm run lint
+npm test
+npm run build
+npm run dev
 ```
 
-## Directory structure
+## AI preview configuration
 
-```
-src/
-  app/            application shell glue
-  core/
-    schema/       primitives + composed CoreObjectSchema
-    validation/   validation engine, unit normalization, issue types
-    commands/     (reserved)
-  domain/
-    objects/      identity, geometry, dimensions, surface, physical, ...
-    orientation/  product orientation schema + utilities
-    motion/       motion-ready schema
-    relationships/ dynamic engineering relationship schema
-    packages/     native package manifest interfaces
-  viewport/interfaces/  ViewportAdapter, RendererAdapter (interfaces only)
-  storage/interfaces/   ProjectRepository, AssetRepository, PackageSerializer
-  ui/pages/       Phase 0 shell page
-  test/
-    fixtures/valid, fixtures/invalid
-    unit/         vitest suites
-```
+The current Netlify Functions prototype expects `FAL_KEY` as a server-side environment variable. Never place the key in source code, browser variables, downloadable packages, or chat messages.
 
-Production deployed: No.
+## Branch discipline
+
+- `Doc`: project context, decisions, QA, and backlog.
+- Feature branches: bounded implementation and acceptance candidates.
+- `develop`: integration after acceptance.
+- `main`: production candidate only.
+
+Production deployment and merges require explicit approval.
