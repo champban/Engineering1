@@ -1,0 +1,37 @@
+name: Apply Object Studio integration
+
+on:
+  push:
+    branches:
+      - feature/phase2-equipment-engineering
+
+permissions:
+  contents: write
+
+jobs:
+  integrate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          package-manager-cache: false
+      - name: Integrate Object Studio
+        run: node scripts/apply-object-studio.mjs
+      - name: Verify application
+        run: npm ci && npm run typecheck && npm run lint && npm test && npm run build
+      - name: Commit integration
+        run: |
+          if git diff --quiet; then
+            echo "Object Studio is already integrated"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/main.tsx
+          git commit -m "feat: integrate professional Object Studio [skip ci]"
+          git push
