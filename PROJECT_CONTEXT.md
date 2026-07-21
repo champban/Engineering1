@@ -131,7 +131,7 @@ Local implementation verification completed in the working runtime:
 - Dependency audit: 0 reported vulnerabilities.
 - TypeScript strict check: Passed.
 - ESLint: Passed.
-- Unit tests in the reconstructed local baseline: 58/58 Passed, including nine new Phase 1 tests.
+- Unit tests: 58/58 Passed, including nine new Phase 1 tests.
 - Production build: Passed.
 - Build output: HTML 0.62 kB, CSS 13.25 kB, JavaScript 220.07 kB.
 
@@ -150,6 +150,22 @@ Important verification limitation:
 - A headless-browser screenshot/smoke attempt hung in the current runtime. Browser interaction is therefore not yet marked Verified.
 - AI segmentation and AI reconstruction are not yet verified against a real object because the isolated preview environment does not yet contain `FAL_KEY`.
 
+## Netlify Phase 1 acceptance deployment
+
+- Dedicated preview project approved and created: `engineering1-phase1-preview`.
+- Site ID: `0f15372e-afba-4361-b170-800eb29ea5f5`.
+- Dashboard: `https://app.netlify.com/projects/engineering1-phase1-preview`.
+- Reserved URL: `https://engineering1-phase1-preview.netlify.app`.
+- The preview project is isolated from production and from the Phase 0 acceptance site.
+- Automatic source upload was attempted after a fresh successful local typecheck, lint, 58/58 tests, and production build.
+- The Netlify MCP uploader downloaded successfully, but its authenticated upload request failed with `TypeError: fetch failed` from the current runtime.
+- The site therefore has no verified live deployment yet.
+- Static preview package: `Engineering1-Phase1A-1C-preview-dist.zip`.
+- Static preview SHA-256: `846365dab348a3e1772b61055c6a80dee2da645f9972037d599c3a6d4f20f96c`.
+- Full source/functions package: `Engineering1-Phase1A-1C-source.zip`.
+- Full source SHA-256: `37b18c092980f4e3acfa8c401184ea2348047be25f97294f861fd2c4867af40f`.
+- The static package supports browser acceptance of the UI/manual fallback, but live AI requires a Functions-enabled source deployment and server-side `FAL_KEY`.
+
 Current status vocabulary:
 
 - Implemented: Yes, bounded Phase 1A–1C alpha vertical slice.
@@ -160,17 +176,18 @@ Current status vocabulary:
 - Merged to `develop`: No.
 - Merged to `main`: No.
 - Released: No.
-- Deployed: No.
+- Deployed: No; the dedicated site exists but contains no verified deploy.
 
 ## Current gates and next work
 
 ### P0
 
-1. Perform real-browser acceptance for upload, selection, manual environment removal, Gallery save, layout insertion, and conveyor Runtime.
-2. Configure `FAL_KEY` only in the isolated preview site's server environment.
-3. Deploy the feature branch to an isolated Netlify acceptance site with Functions enabled.
-4. Test AI segmentation and AI reconstruction with a real object.
-5. Render the generated GLB directly inside the engineering viewport and verify scale/orientation.
+1. Upload the static preview package to the dedicated Phase 1 Netlify project for UI/manual-fallback acceptance, or connect the feature branch for a Functions-enabled build.
+2. Perform real-browser acceptance for upload, selection, manual environment removal, Gallery save, layout insertion, and conveyor Runtime.
+3. Configure `FAL_KEY` only in the isolated preview site's server environment.
+4. Deploy the full source with Netlify Functions enabled.
+5. Test AI segmentation and AI reconstruction with a real object.
+6. Render the generated GLB directly inside the engineering viewport and verify scale/orientation.
 
 ### P1
 
