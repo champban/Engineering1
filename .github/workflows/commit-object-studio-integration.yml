@@ -1,0 +1,29 @@
+name: Commit Object Studio integration
+
+on:
+  push:
+    branches:
+      - feature/phase2-equipment-engineering
+
+permissions:
+  contents: write
+
+jobs:
+  commit:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Apply integration patch
+        run: node scripts/apply-object-studio.mjs
+      - name: Commit integration
+        run: |
+          if git diff --quiet; then
+            echo "Object Studio already integrated"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/main.tsx
+          git commit -m "feat: integrate Object Studio into application [skip ci]"
+          git push
