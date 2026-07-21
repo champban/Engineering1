@@ -1,0 +1,5 @@
+
+> engineering1-scaffold@0.1.0 typecheck
+> tsc -b
+
+src/ui/pages/ObjectStudioPage.tsx(1,34): error TS6133: 'useMemo' is declared but its value is never read.
