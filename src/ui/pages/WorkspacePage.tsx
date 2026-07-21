@@ -36,6 +36,7 @@ import {
   type LayoutProject,
   type SceneObjectInstance,
 } from '@/domain/layout/layout'
+import { calculateOee, percentage } from '@/domain/runtime/oee'
 import {
   getAiCapabilities,
   pollAiJob,
@@ -808,6 +809,11 @@ function RuntimeWorkspace({ conveyors }: { conveyors: ConveyorDefinition[] }) {
   const [playing, setPlaying] = useState(false)
   const [progress, setProgress] = useState(0)
   const [speedMultiplier, setSpeedMultiplier] = useState(1)
+  const [plannedMinutes, setPlannedMinutes] = useState(480)
+  const [downtimeMinutes, setDowntimeMinutes] = useState(35)
+  const [idealRatePerMinute, setIdealRatePerMinute] = useState(230)
+  const [totalCount, setTotalCount] = useState(94000)
+  const [rejectCount, setRejectCount] = useState(1200)
   const frameRef = useRef<number | null>(null)
   const timeRef = useRef<number | null>(null)
   const connectedMode = selectedId === CONNECTED_LINE_ID && conveyors.length > 1
@@ -857,6 +863,7 @@ function RuntimeWorkspace({ conveyors }: { conveyors: ConveyorDefinition[] }) {
   const capacity = connectedMode
     ? conveyors.reduce((sum, conveyor) => sum + conveyor.bufferCapacity, 0)
     : (selected as ConveyorDefinition).bufferCapacity
+  const oee = calculateOee({ plannedMinutes, downtimeMinutes, idealRatePerMinute, totalCount, rejectCount })
 
   return (
     <section className="workspace-section">
@@ -888,6 +895,24 @@ function RuntimeWorkspace({ conveyors }: { conveyors: ConveyorDefinition[] }) {
             <option value={4}>4×</option>
           </select>
         </label>
+      </div>
+
+      <div className="oee-panel">
+        <div className="oee-inputs">
+          <NumberField label="Planned time (min)" value={plannedMinutes} onChange={(value) => setPlannedMinutes(Math.max(0, value))} />
+          <NumberField label="Downtime (min)" value={downtimeMinutes} onChange={(value) => setDowntimeMinutes(Math.max(0, value))} />
+          <NumberField label="Ideal rate (pcs/min)" value={idealRatePerMinute} onChange={(value) => setIdealRatePerMinute(Math.max(0, value))} />
+          <NumberField label="Total count" value={totalCount} onChange={(value) => setTotalCount(Math.max(0, value))} />
+          <NumberField label="Reject count" value={rejectCount} onChange={(value) => setRejectCount(Math.max(0, value))} />
+        </div>
+        <div className="oee-kpis" aria-label="OEE performance dashboard">
+          <KpiCard label="Availability" value={percentage(oee.availability)} />
+          <KpiCard label="Performance" value={percentage(oee.performance)} />
+          <KpiCard label="Quality" value={percentage(oee.quality)} />
+          <KpiCard label="OEE" value={percentage(oee.oee)} emphasis />
+          <KpiCard label="Waste" value={percentage(oee.wasteRate)} warning={oee.wasteRate > 0.02} />
+          <KpiCard label="Good count" value={Math.round(oee.goodCount).toLocaleString()} />
+        </div>
       </div>
 
       <div className="runtime-stage">
@@ -960,6 +985,10 @@ function ObjectPreview({
       modelUrl={modelUrl || undefined}
     />
   )
+}
+
+function KpiCard({ label, value, emphasis = false, warning = false }: { label: string; value: string; emphasis?: boolean; warning?: boolean }) {
+  return <div className={`kpi-card ${emphasis ? 'kpi-card--emphasis' : ''} ${warning ? 'kpi-card--warning' : ''}`}><span>{label}</span><strong>{value}</strong></div>
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
