@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type ReactNode } from 'react'
+import { useCallback, useEffect, useRef, useState, type ChangeEvent, type ReactNode } from 'react'
 import { createDemoWorkspace } from '@/domain/demo/demo-workspace'
 import type { ObjectAsset, ObjectDimensionsMm } from '@/domain/gallery/object-asset'
 import {
