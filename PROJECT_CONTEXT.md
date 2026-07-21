@@ -164,10 +164,10 @@ Important verification limitation:
 - Current live static deploy ID: `6a5ef317f8efcc78c652b2d0`.
 - P'Boy opened the site and verified the workspace shell visually.
 - The live static deploy does not include Netlify Functions or live AI because the project is not yet connected to the feature branch and `FAL_KEY` is not configured.
-- Static preview package: `Engineering1-Phase1A-1C-preview-dist.zip`.
-- Static preview SHA-256: `846365dab348a3e1772b61055c6a80dee2da645f9972037d599c3a6d4f20f96c`.
-- Full source/functions package: `Engineering1-Phase1A-1C-source.zip`.
-- Full source SHA-256: `37b18c092980f4e3acfa8c401184ea2348047be25f97294f861fd2c4867af40f`.
+- Updated static preview package: `Engineering1-Phase1A-3D-Gallery-preview-dist.zip`.
+- Updated static preview SHA-256: `d66880c14cfaed77bce67161bba1469240b057a26bedeba223a629183051d92b`.
+- Updated full source/functions package: `Engineering1-Phase1A-3D-Gallery-source.zip`.
+- Updated full source SHA-256: `a360eefd3429a1821f9fc4d327b95f83a2cce800b8734c4131a85a51cbdd89c9`.
 - The static package supports browser acceptance of the UI/manual fallback, but live AI requires a Functions-enabled source deployment and server-side `FAL_KEY`.
 
 Current status vocabulary:
