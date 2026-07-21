@@ -16,26 +16,25 @@ The first product priority is not limited to production-equipment objects. The a
 The first three implementation programs are:
 
 1. **Phase 1A — AI Camera-to-Gallery**: image/video capture, object selection, environment removal, AI reconstruction, static properties, reusable gallery.
-2. **Phase 1B — Mechanical Layout Assembly**: place Gallery objects in an indoor-factory or outdoor-layout workspace, position/rotate/elevate them, and add transport modules.
-3. **Phase 1C — Transport Visual Runtime**: animate cookie packs, multipacks, cartons, or cases on straight, curved, incline, decline, spiral, and buffering conveyor paths.
+2. **Phase 1B — Mechanical Layout Assembly**: place Gallery objects in indoor-factory or outdoor-layout workspaces, position/rotate/elevate them, and add transport modules.
+3. **Phase 1C — Transport Visual Runtime and OEE Alpha**: animate products across connected conveyor routes and calculate Availability, Performance, Quality, OEE, waste, and good output.
 
 Later domain modules will support mechanical, industrial, HVAC/thermodynamic, process, electrical, automation, civil, architectural, landscape, and general consumer design workflows.
 
 ## Architecture
 
 - React with TypeScript strict mode and Vite.
-- Direct Three.js engineering viewport remains the target 3D renderer; native domain documents are authoritative.
+- Direct Three.js engineering viewport; native domain documents remain authoritative.
 - Zod runtime validation for authoritative engineering records.
-- Local-first persistence; current Phase 1 alpha uses browser storage while IndexedDB/Dexie and OPFS remain the approved production target.
+- Local-first persistence; current alpha uses browser storage while IndexedDB/Dexie and OPFS remain the production target.
 - Versioned reusable Object Asset records separated from scene instances.
 - Universal-object core with optional domain extensions.
 - Editor and Runtime are separate workspaces.
-- Visual Engineering and future HMI/SCADA are separate workspaces.
-- Feature Capability Registry controls whether a function is available, experimental, planned, or disabled.
+- Feature Capability Registry controls available, experimental, planned, and disabled functions.
 - Working functions use active colour. Planned or unavailable functions are grey and cannot be invoked.
 - AI integrations are adapter-based and provider-neutral at the domain boundary.
 - AI provider secrets remain server-side only.
-- Netlify Functions are the current approved server boundary for the Phase 1 AI prototype.
+- Netlify Functions are the approved server boundary for the Phase 1 AI prototype.
 
 Coordinate and units:
 
@@ -48,17 +47,17 @@ Coordinate and units:
 ## Key decisions
 
 1. Every reusable Gallery item is an Engineering Object, not only a rendered mesh.
-2. Camera-to-3D must accept arbitrary real-world objects, not only factory/process equipment.
-3. The user must be able to select the target object and exclude unrelated environment/background.
-4. AI-generated geometry is initially classified as a visual/draft object, not automatically verified engineering CAD.
-5. Manual dimension calibration is mandatory before an object can progress toward Verified or Released status.
-6. Original captures remain immutable; cleaned images, generated models, and later engineering revisions are separate derivatives.
-7. Gallery assets are independent from scene instances so one asset may be reused in many assemblies and projects.
-8. Static geometry/properties come before dynamic simulation, but schemas remain extension-ready for sensors, I/O, controls, process, thermal, structural, and digital-twin modules.
-9. HMI/SCADA and PLC features remain visible but disabled until their runtimes and safety/security boundaries are implemented and verified.
+2. Camera-to-3D accepts arbitrary real-world objects, not only factory/process equipment.
+3. The user selects the target object and excludes unrelated background/environment.
+4. AI-generated geometry is initially a visual/draft object, not verified engineering CAD.
+5. Manual dimension calibration is mandatory before Verified or Released status.
+6. Original captures remain immutable; cleaned images, generated models, and revisions are separate derivatives.
+7. Gallery assets are independent from scene instances and reusable across projects.
+8. Static geometry/properties precede dynamic simulation, while schemas remain extension-ready.
+9. HMI/SCADA and PLC features remain visible but disabled until their runtimes and security boundaries are implemented and verified.
 10. GitHub is the source of truth for code, schemas, tests, configuration, and documentation.
-11. Every deployable preview should include two or three ready-to-use demo objects so P'Boy can immediately explore Gallery, Layout, and Runtime without first creating an object.
-12. Whenever a downloadable file is produced, the response must include a direct file link in the same message.
+11. Every deployable preview includes two or three ready-to-use demo objects.
+12. Every downloadable deliverable must be accompanied by a direct file link in the same response.
 
 ## Branch and deployment discipline
 
@@ -69,15 +68,15 @@ Coordinate and units:
 
 `Edit → Test → Verify → Commit → Report → Accumulate → Approve → Deploy`
 
-A GitHub commit is not a deployment. Production requires P'Boy approval. Do not auto-merge feature branches to `main` and do not publish production after every change.
+A GitHub commit is not a deployment. Production requires P'Boy approval. Do not auto-merge feature branches to `develop` or `main`, and do not publish production after every change.
 
 ## Current implementation state
 
 ### Phase 0 foundation
 
-- Phase 0 progress remains 95% pending browser acceptance.
-- Existing feature branch: `feature/PH0-foundation-scaffold`.
-- Verified Phase 0 feature head: `1cef419590c5dd6d802041805952e13d375836cf`.
+- Progress: 95%, pending final browser acceptance and integration discipline.
+- Feature branch: `feature/PH0-foundation-scaffold`.
+- Verified feature head: `1cef419590c5dd6d802041805952e13d375836cf`.
 - Draft PR #1 targets `develop`.
 - Merged to `develop`: No.
 - Merged to `main`: No.
@@ -85,73 +84,85 @@ A GitHub commit is not a deployment. Production requires P'Boy approval. Do not 
 
 ### Phase 1A–1C alpha vertical slice
 
-Current branch: `feature/phase1a-camera-gallery`
-Base commit: `1cef419590c5dd6d802041805952e13d375836cf`
-Current branch head: `d032b8b7ea0c96f9a803651ac98b38914b9cc523`
-Draft stacked PR: `#2` targeting `develop`
-Merge dependency: PR #2 must not be merged before Phase 0 PR #1 is accepted and integrated.
+- Current branch: `feature/phase1a-camera-gallery`.
+- Base commit: `1cef419590c5dd6d802041805952e13d375836cf`.
+- Current verified branch head: `71ddb67e0f0ceb6ea08277da96d28c931ad0783c`.
+- Draft stacked PR: `#2` targeting `develop`.
+- Merge dependency: PR #2 must not be merged before Phase 0 PR #1 is accepted and integrated.
 
 Implemented on the feature branch:
+
+#### Phase 1A
 
 - Feature Capability Registry.
 - Camera/Image/Video workspace.
 - Image upload and representative video-frame extraction.
 - Box selection and point-focus selection.
 - Manual selected-region extraction fallback.
-- Server-side AI segmentation adapter.
-- Server-side AI image-to-3D reconstruction adapter.
+- Server-side AI segmentation and image-to-3D reconstruction adapters.
 - AI queue polling and job-state display.
 - Server-only AI secret handling and provider URL allowlisting.
 - Calibratable visual 3D proxy.
-- Lazy-loaded direct Three.js preview with orbit, pan/zoom controls, engineering-proportion proxy geometry, and generated GLB loading.
-- GLB load failure/CORS fallback to a calibrated proxy and rendered-image reference.
+- Lazy-loaded Three.js preview with orbit, pan/zoom, engineering-proportion proxy geometry, and generated GLB loading.
+- GLB load failure/CORS fallback to calibrated proxy and rendered-image reference.
 - Object name, category, tags, material, and physical dimensions.
-- Reusable Object Gallery with search.
-- Gallery 3D inspector, asset duplication, deletion, and Draft → Calibrated transition.
-- Gallery-to-layout insertion.
-- Mechanical layout alpha with X/Z position, elevation, and rotation.
+- Gallery search, 3D inspector, duplication, deletion, Draft → Calibrated transition, and layout insertion.
+
+#### Phase 1B
+
+- Mechanical layout editor with X/Z world coordinates, elevation, rotation, and scale.
+- Direct scene-object drag on the canvas.
+- Snap grid toggle with 100, 250, 500, and 1000 mm increments.
+- Scene-object duplication and deletion.
 - Straight, curve, incline, decline, spiral, and buffer conveyor definitions.
-- Direction, speed, length, width, and elevation properties.
-- Transport Visual Runtime with Play/Pause/Reset and speed multiplier.
-- Cookie-pack/carton/case transport animation and reverse direction.
-- Planned HMI/SCADA and PLC workspaces displayed grey and disabled.
-- Netlify Functions and redirects for AI capability, segmentation, reconstruction, and job status.
-- Unit tests for Gallery records, capability states, transport paths, lifecycle helpers, 3D preview proportion normalization, and demo-workspace integrity.
+- Conveyor sequence list with move-earlier, move-later, and delete actions.
+- Entry/exit elevation and product-type compatibility checks between adjacent conveyors.
+- Connected conveyor route rendering and automatic fit inside the engineering canvas.
+
+#### Phase 1C
+
+- Visual Runtime with Play, Pause, Reset, speed multiplier, and reverse direction.
+- Individual-conveyor and continuous connected-line modes.
+- Cookie pack, multipack, carton, and case transport definitions.
+- Continuous product animation across multiple conveyor modules.
+- Editable OEE inputs: planned minutes, downtime, ideal rate, total count, reject count.
+- KPIs: Availability, Performance, Quality, OEE, Waste, and Good Count.
+- Input clamping for impossible downtime/reject values.
 
 Getting-started demo content:
 
-- Cookie Single Pack — calibrated proxy box, 95 × 55 × 15 mm.
-- Gearmotor 0.75 kW — calibrated proxy cylinder, 420 × 260 × 280 mm.
-- Landscape Tree Placeholder — calibrated outdoor object, 1800 × 1800 × 3500 mm.
+- Cookie Single Pack — 95 × 55 × 15 mm.
+- Gearmotor 0.75 kW — 420 × 260 × 280 mm.
+- Landscape Tree Placeholder — 1800 × 1800 × 3500 mm.
 - Demo Layout containing all three objects.
-- Demo Straight, Curve, Spiral, and Buffer conveyors ready for Visual Runtime.
+- Demo Straight, Curve, Spiral, and Buffer conveyors.
 - Empty browser workspaces automatically receive the demo project.
-- A `Load demo project` action restores the examples after the user has modified or deleted them.
+- `Load demo project` restores the examples after modification or deletion.
 
 AI prototype configuration:
 
 - Provider boundary: fal.ai-compatible server functions.
-- Segmentation adapter target: `fal-ai/sam2/image`.
-- Reconstruction adapter target: `tripo3d/tripo/v2.5/image-to-3d`.
+- Segmentation adapter: `fal-ai/sam2/image`.
+- Reconstruction adapter: `tripo3d/tripo/v2.5/image-to-3d`.
 - Required server environment variable: `FAL_KEY`.
-- When `FAL_KEY` is absent, AI controls remain disabled/grey while manual extraction and proxy creation remain available.
-- Never place or commit `FAL_KEY` in browser code, repository files, chat messages, or downloadable packages.
+- When the server variable is absent, AI controls remain disabled while manual extraction and proxy creation remain available.
+- Never place or commit the provider key in browser code, repository files, chat messages, or downloadable packages.
 
 ## Quality status
 
-Local implementation verification:
+Local acceptance build:
 
-- `npm ci`: Passed.
-- Dependency audit: 0 reported vulnerabilities.
+- Dependency installation: Passed.
 - TypeScript strict check: Passed.
 - ESLint: Passed.
-- Unit tests: 64/64 Passed.
+- Unit tests: 73/73 Passed across 11 test files.
 - Production build: Passed.
-- Production build output: HTML 0.62 kB, CSS 15.17 kB, main application JavaScript 228.36 kB, lazy Three.js preview chunk 588.90 kB before gzip.
+- Build output: HTML 0.62 kB, CSS 17.37 kB, main JavaScript 236.58 kB, lazy Three.js preview chunk 588.90 kB before gzip.
+- The large Three.js chunk is lazy-loaded; further renderer code splitting remains a performance backlog item.
 
 Actual GitHub feature-branch verification:
 
-- GitHub Actions Quality Gate run #40 on commit `d032b8b7ea0c96f9a803651ac98b38914b9cc523`: Passed.
+- GitHub Actions Quality Gate run #71 on commit `71ddb67e0f0ceb6ea08277da96d28c931ad0783c`: Passed.
 - Checkout: Passed.
 - Locked dependency installation: Passed.
 - TypeScript check: Passed.
@@ -159,66 +170,70 @@ Actual GitHub feature-branch verification:
 - Unit tests: Passed.
 - Production build: Passed.
 
-Important verification limitation:
+Verification limitations:
 
-- P'Boy opened the deployed static preview successfully and confirmed the Phase 1 workspace shell rendered correctly. Full end-to-end object capture, Gallery, layout, and runtime acceptance remains pending.
-- AI segmentation and AI reconstruction are not yet verified against a real object because the isolated preview environment does not yet contain `FAL_KEY`.
+- P'Boy opened the earlier deployed static preview and confirmed the workspace shell rendered correctly.
+- The latest demo, interactive Layout, connected Runtime, and OEE build still requires a new static upload and browser acceptance.
+- AI segmentation and AI reconstruction are not yet verified against a real object because the isolated preview environment does not yet contain the required server variable.
 
 ## Netlify Phase 1 acceptance deployment
 
-- Dedicated preview project approved and created: `engineering1-phase1-preview`.
+- Dedicated project: `engineering1-phase1-preview`.
 - Site ID: `0f15372e-afba-4361-b170-800eb29ea5f5`.
 - Dashboard: `https://app.netlify.com/projects/engineering1-phase1-preview`.
-- Reserved URL: `https://engineering1-phase1-preview.netlify.app`.
+- URL: `https://engineering1-phase1-preview.netlify.app`.
 - The preview project is isolated from production and from the Phase 0 acceptance site.
-- Existing static preview deployment is live and Netlify reports deploy state `ready`.
-- Current live static deploy ID: `6a5ef317f8efcc78c652b2d0`.
-- The current live deployment predates the demo-object increment.
-- New demo-enabled static preview package: `Engineering1-Phase1-Demo-Objects-preview-dist.zip`.
-- New demo-enabled static preview SHA-256: `1166e954255002376a57ccf310c3257079989e3ed117003f58a6dac4b1d4c3a7`.
-- New full source/functions package: `Engineering1-Phase1-Demo-Objects-source.zip`.
-- New full source SHA-256: `2d7671308451e0c13dac21cc2c0575847585d9f0bf61d39b3c4d9eac2d37191a`.
-- The static package supports browser acceptance of demo objects, UI/manual fallback, Gallery, Layout, and Runtime.
-- Live AI still requires a Functions-enabled source deployment and server-side `FAL_KEY`.
+- Existing live deploy ID: `6a5ef317f8efcc78c652b2d0`, state `ready`.
+- Existing live deploy predates the latest Layout/OEE increment.
+- Latest static package: `Engineering1-Phase1-Layout-OEE-preview-dist.zip`.
+- Latest static package SHA-256: `7c0e99283a9e1483a3e4eb6cc75510a74088deba6e24f6fcd43f5b181808c132`.
+- Latest source/functions package: `Engineering1-Phase1-Layout-OEE-source.zip`.
+- Latest source package SHA-256: `9e77111a03ccdbb12f6d5ef74d7accb4558d40cb3ba8970ab3742d63eac8c534`.
+- Static drag-and-drop supports demo, Gallery, Layout, connected Runtime, and OEE acceptance.
+- Live AI still requires a Functions-enabled source deployment and server-side environment configuration.
 
 Current status vocabulary:
 
-- Implemented: Yes, bounded Phase 1A–1C alpha vertical slice plus demo content.
-- Tested locally: Yes, typecheck/lint/unit/build.
-- Tested on actual GitHub branch: Yes, Quality Gate passed.
-- Verified in an interactive browser: Partially; live shell verified, full workflow pending.
-- AI provider verified with a real object: No, pending.
+- Implemented: Yes, bounded Phase 1A–1C alpha including demo, interactive Layout, connected Runtime, and OEE/Waste.
+- Tested locally: Yes.
+- Tested on actual GitHub branch: Yes.
+- Verified in an interactive browser: Partially; prior shell verified, latest workflow pending.
+- AI provider verified with a real object: No.
 - Merged to `develop`: No.
 - Merged to `main`: No.
 - Released: No.
-- Deployed: Previous static acceptance preview is live; demo-enabled preview upload and Functions-enabled AI deployment are pending.
+- Deployed: Previous static acceptance build is live; latest build and Functions-enabled AI deployment are pending.
 
 ## Current gates and next work
 
 ### P0
 
-1. Upload the demo-enabled static preview to the dedicated Netlify acceptance project.
-2. Verify the three demo Gallery objects, interactive 3D review, Layout placement, and four playable Runtime conveyor examples.
-3. Perform full real-browser acceptance for upload, selection, manual environment removal, 3D proxy review, Gallery save/duplicate/delete/calibrate, layout insertion, and conveyor Runtime.
-4. Connect the Netlify project to `feature/phase1a-camera-gallery` so Functions are built from source.
-5. Configure `FAL_KEY` only in the isolated preview site's server environment.
-6. Test AI segmentation, generated GLB loading, orbit review, scale calibration, and save-to-Gallery using a real object.
-7. Verify cross-origin loading for provider-hosted GLB assets; use a server proxy or object storage adapter if direct CORS fails.
+1. Upload `Engineering1-Phase1-Layout-OEE-preview-dist.zip` to the dedicated Netlify project.
+2. Verify the three demo Gallery objects and interactive Three.js review.
+3. Verify Layout drag, snap, duplicate/delete, conveyor sequencing, and interface warnings.
+4. Verify individual and connected-line Runtime modes.
+5. Verify OEE/Waste calculations by changing downtime, total count, and rejects.
+6. Connect the Netlify project to the feature branch for Functions-enabled builds.
+7. Configure the AI provider key only in the isolated Netlify server environment.
+8. Test AI segmentation, generated GLB loading, orbit review, scale calibration, and save-to-Gallery using a real object.
+9. Verify provider-hosted GLB cross-origin loading; add a server proxy or object-storage adapter if required.
 
 ### P1
 
-- Add robust multi-frame video selection and user correction of segmentation masks.
-- Replace alpha browser storage with IndexedDB/Dexie and OPFS.
+- Add robust multi-frame video selection and segmentation-mask correction.
+- Replace browser-storage alpha with IndexedDB/Dexie and OPFS.
 - Add revision management and Draft → Calibrated → Verified → Released workflow.
 - Add object renaming, category management, folders, revision history, and Gallery import/export.
-- Add proper scene-object grouping and assemblies.
-- Add conveyor connectors and multi-conveyor path continuity.
+- Add scene-object grouping and assemblies.
+- Add explicit conveyor connection handles and editable route topology.
+- Add machine input/output ports, blocking, starving, accumulation, reject, and waste events.
 
 ### P2
 
-- Add BOM, specification, commercial/fabricated classification, documents, and procurement records.
+- Add BOM, specifications, commercial/fabricated classification, documents, and procurement records.
 - Add camera scale references and measurable calibration overlays.
 - Add multi-view reconstruction and later mesh-to-parametric/BRep adapters.
+- Add event-driven OEE history, downtime reasons, waste categories, Pareto analysis, and reporting.
 
 ## Progress reporting
 
