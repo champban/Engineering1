@@ -8,8 +8,6 @@ export type StudioTool =
   | 'scale'
   | 'paint'
   | 'measure'
-  | 'orbit'
-  | 'pan'
   | 'line'
   | 'rectangle'
   | 'circle'
@@ -18,9 +16,23 @@ export type StudioTool =
   | 'section'
   | 'boolean'
 
+export type StudioViewMode = 'edit' | 'orbit' | 'pan'
+export type StudioCameraCommand =
+  | 'fit-all'
+  | 'fit-selection'
+  | 'iso'
+  | 'front'
+  | 'back'
+  | 'left'
+  | 'right'
+  | 'top'
+  | 'bottom'
+
 export type StudioPrimitive = 'asset' | 'box' | 'cylinder' | 'sphere' | 'plane'
 export type StudioProjection = 'perspective' | 'orthographic'
 export type StudioLightingPreset = 'studio' | 'sunlight' | 'warehouse' | 'inspection'
+export type StudioFace = 'right' | 'left' | 'top' | 'bottom' | 'front' | 'back' | 'surface'
+export type StudioSketchKind = 'line' | 'rectangle' | 'circle'
 
 export interface StudioVector3 {
   x: number
@@ -56,6 +68,7 @@ export interface StudioNode {
   dimensionsMm: ObjectDimensionsMm
   transform: StudioTransform
   material: StudioMaterial
+  faceMaterials?: Partial<Record<StudioFace, StudioMaterial>>
   visible: boolean
   locked: boolean
   modelUrl?: string
@@ -70,7 +83,7 @@ export interface StudioMeasurement {
 }
 
 export interface ObjectStudioDocument {
-  schemaVersion: '1.0.0'
+  schemaVersion: '1.1.0'
   id: string
   name: string
   nodes: StudioNode[]
@@ -114,7 +127,7 @@ export function createDefaultMaterial(name = 'Engineering blue'): StudioMaterial
 export function createStudioDocument(assets: readonly ObjectAsset[]): ObjectStudioDocument {
   const nodes = assets.slice(0, 3).map((asset, index) => createStudioNodeFromAsset(asset, index))
   return {
-    schemaVersion: '1.0.0',
+    schemaVersion: '1.1.0',
     id: createId('studio'),
     name: 'Object Studio Project',
     nodes,
@@ -127,6 +140,22 @@ export function createStudioDocument(assets: readonly ObjectAsset[]): ObjectStud
     background: '#091018',
     measurements: [],
     updatedAt: new Date().toISOString(),
+  }
+}
+
+export function normalizeStudioDocument(document: ObjectStudioDocument): ObjectStudioDocument {
+  return {
+    ...document,
+    schemaVersion: '1.1.0',
+    nodes: document.nodes.map((node) => ({
+      ...node,
+      faceMaterials: node.faceMaterials ?? {},
+      transform: {
+        positionMm: { ...node.transform.positionMm },
+        rotationDeg: { ...node.transform.rotationDeg },
+        scale: { ...node.transform.scale },
+      },
+    })),
   }
 }
 
@@ -147,6 +176,7 @@ export function createStudioNodeFromAsset(asset: ObjectAsset, index = 0): Studio
       ...createDefaultMaterial(asset.material),
       baseColor: asset.geometryType === 'proxy-cylinder' ? '#6e8aa3' : '#56a9f8',
     },
+    faceMaterials: {},
     visible: true,
     locked: false,
     modelUrl: asset.modelUrl,
@@ -171,8 +201,61 @@ export function createPrimitiveNode(primitive: Exclude<StudioPrimitive, 'asset'>
       scale: { x: 1, y: 1, z: 1 },
     },
     material: createDefaultMaterial(),
+    faceMaterials: {},
     visible: true,
     locked: false,
+  }
+}
+
+export function createSketchNode(
+  kind: StudioSketchKind,
+  startMm: StudioVector3,
+  endMm: StudioVector3,
+  gridMm: number,
+  snapEnabled: boolean,
+): StudioNode {
+  const start = snapVector(startMm, gridMm, snapEnabled)
+  const end = snapVector(endMm, gridMm, snapEnabled)
+  const dx = end.x - start.x
+  const dz = end.z - start.z
+  const distance = Math.max(1, Math.hypot(dx, dz))
+  const centre = { x: (start.x + end.x) / 2, y: 0, z: (start.z + end.z) / 2 }
+
+  if (kind === 'circle') {
+    const diameter = Math.max(10, distance * 2)
+    const node = createPrimitiveNode('cylinder')
+    return {
+      ...node,
+      name: 'Sketch Circle',
+      dimensionsMm: { length: diameter, width: diameter, height: Math.max(10, gridMm / 10) },
+      transform: { ...node.transform, positionMm: { x: start.x, y: 0, z: start.z } },
+    }
+  }
+
+  if (kind === 'rectangle') {
+    const node = createPrimitiveNode('plane')
+    return {
+      ...node,
+      name: 'Sketch Rectangle',
+      dimensionsMm: {
+        length: Math.max(10, Math.abs(dx)),
+        width: Math.max(10, Math.abs(dz)),
+        height: Math.max(5, gridMm / 20),
+      },
+      transform: { ...node.transform, positionMm: centre },
+    }
+  }
+
+  const node = createPrimitiveNode('box')
+  return {
+    ...node,
+    name: 'Sketch Line',
+    dimensionsMm: { length: distance, width: Math.max(5, gridMm / 20), height: Math.max(5, gridMm / 20) },
+    transform: {
+      ...node.transform,
+      positionMm: centre,
+      rotationDeg: { x: 0, y: -Math.atan2(dz, dx) * 180 / Math.PI, z: 0 },
+    },
   }
 }
 
@@ -192,21 +275,39 @@ export function duplicateStudioNode(node: StudioNode): StudioNode {
       rotationDeg: { ...node.transform.rotationDeg },
       scale: { ...node.transform.scale },
     },
-    material: { ...node.material, id: createId('mat') },
+    material: cloneMaterial(node.material),
+    faceMaterials: Object.fromEntries(
+      Object.entries(node.faceMaterials ?? {}).map(([face, material]) => [face, material ? cloneMaterial(material) : material]),
+    ) as Partial<Record<StudioFace, StudioMaterial>>,
   }
 }
 
-export function applyMaterialPreset(node: StudioNode, presetName: string): StudioNode {
+export function applyMaterialPreset(node: StudioNode, presetName: string, face?: StudioFace | null): StudioNode {
   const preset = MATERIAL_PRESETS.find((item) => item.name === presetName)
   if (!preset) return node
+  const material: StudioMaterial = {
+    ...preset,
+    id: face ? node.faceMaterials?.[face]?.id ?? createId('mat') : node.material.id,
+    textureDataUrl: face ? node.faceMaterials?.[face]?.textureDataUrl : node.material.textureDataUrl,
+  }
+  return face ? applyMaterialToFace(node, face, material) : { ...node, material }
+}
+
+export function applyMaterialToFace(node: StudioNode, face: StudioFace, material: StudioMaterial): StudioNode {
   return {
     ...node,
-    material: {
-      ...preset,
-      id: node.material.id,
-      textureDataUrl: node.material.textureDataUrl,
-    },
+    faceMaterials: { ...node.faceMaterials, [face]: material },
   }
+}
+
+export function clearFaceMaterial(node: StudioNode, face: StudioFace): StudioNode {
+  const next = { ...node.faceMaterials }
+  delete next[face]
+  return { ...node, faceMaterials: next }
+}
+
+export function effectiveMaterial(node: StudioNode, face?: StudioFace | null): StudioMaterial {
+  return face ? node.faceMaterials?.[face] ?? node.material : node.material
 }
 
 export function snapMillimetres(value: number, gridMm: number, enabled: boolean): number {
@@ -214,6 +315,14 @@ export function snapMillimetres(value: number, gridMm: number, enabled: boolean)
   if (!enabled) return value
   const grid = Math.max(1, Math.abs(gridMm))
   return Math.round(value / grid) * grid
+}
+
+export function snapVector(value: StudioVector3, gridMm: number, enabled: boolean): StudioVector3 {
+  return {
+    x: snapMillimetres(value.x, gridMm, enabled),
+    y: snapMillimetres(value.y, gridMm, enabled),
+    z: snapMillimetres(value.z, gridMm, enabled),
+  }
 }
 
 export function distance3dMm(start: StudioVector3, end: StudioVector3): number {
@@ -235,6 +344,10 @@ export function calculateNodeVolumeMm3(node: StudioNode): number {
 
 export function touchStudioDocument(document: ObjectStudioDocument): ObjectStudioDocument {
   return { ...document, updatedAt: new Date().toISOString() }
+}
+
+function cloneMaterial(material: StudioMaterial): StudioMaterial {
+  return { ...material, id: createId('mat') }
 }
 
 function capitalize(value: string): string {
