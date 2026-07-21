@@ -1,0 +1,78 @@
+name: Apply Phase 1B layout increment
+
+on:
+  push:
+    branches:
+      - feature/phase1a-camera-gallery
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - name: Apply layout editor increment
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import base64
+          import gzip
+
+          layout_b64 = "H4sIAOALX2oC/7UbXW/bRvI9v2JM9Cryqi+3TRuokoLEdnsB6jbnpGhSw4DX4kpiQ5HskpKtqATu6Z4Pdz/m3u+n9Jfc7C6XXC6Xspy2QeKQy5nZ2fmeIT1fR7MsiCP4lmzjdfZjzN6lCZlRd/cIIBRrXbyKo5MliRaUXy9IGFK2lcsvopQyBMlHUGGMCmovWfwznWUa/ghcK4gHkyls4sCv6I/g+xv+6Fma0uzyStsNiRC+WIOoKOSeYGUWR2kGMxJtSHpB5zCBdUrxYvy31+ffngabs5CuaJRN3Wgdhl6J4DOyqIHvIBa7vPBHkGYsiBZfQTyf45ZvXt6NIFqvbihTS2+rJcjhV+C0zR0uUxoiPep/X9DtAmK+MhavJAevMpLRsdz3PnoncbSh25gZFKtlC82p6wrJSa30ZwVsejm8etoPfHj6FDodfa+IJGcRuQlpsUl1r1N3M7amGtqCBf75SmB8Iy5rwJ8+HlawdekgWMGa1ELanweR77pBRleCcX7BGZ1MJmAK1uPsc2E1iCuZVOTLkx+yQSVSsYVFeI2d8WckcC8QlMrTn9NVXMj/Zh2EnKwG45pku/DF514XLs31K8/cJeD+Rmfv0sY+dEPCNcpcneCkREgb+7XshZvNVdSYxatVkLkRvWt6NHfCyvPdHfT7fQ7YhXXiIwv+M8SJ6C2cchvw+ln84tX3r4RVIq85P1Re24z4peDdbJtgMFG3r/FObVgKQil4xqh2YIHpFZCCecFYEepKvHQEl+WyrgJ1eSU5BJvvlg4Kdj90FRG0q+YxpXQkLTch2Ww5gpeEZQEJx69mNCoeYSzMSDSjU3XwYA7uUd0FPGA0W7NIPNfpPt8iF3VY5KULYrv9LAlUMyQWmIcxquQubkCTfrFQePrI9PwVSVr8UrEDT0Fokz/r8gvBFUbikQD35A552wFLGzEOo9ZPKcaGgCPYha7gamK/77SaxTVCUfuJzS1FrP7Aw9/QRRBJXZ1i9nPpBvPiCC4omWUv4yDKKDvjSyJzPl9nWRyp5NmFoNDuCCwqr/tkRtiCZhcyqotN+rM1Y/j/a/Gkj/+ex+vIR4M6CQNc57CudKQiLysMpLCrmQu3RcULN2X1sMrUxY6C8Bvoaez0QzrP6hhvTYy3dYwsTgp5tgYBjZt9sUCmV7AKBDEKBZyQBC2KSt30E7n4wtdREyb+RyMl61CKra7nVbxRYeVBKjadva5VrhjUhqEfPRSLEowHYlWL1YCEBwkiv/4qqPRLbz7SXRufHkkKhnvxPZg0Kvl8rx1J+NuYhX6JICTwOv6RL7qFGSjrArizGQ9TZoPXkmllaN0ScWuzIVZYTx3vbYWXq4sd3AZ+tuREBJK468KSBotlVq7K2wpLK9AwIMi6CyPAsXzu2TNBXFaiQjBN0+FxL11+WIxQ5tL04KJAkjZgs/9loZt2+/dKRdnwGbobSekhPpQ3zuyvkzCYoaDqnu0emm8L91BUuI+UFHmoVEHSyMPdNhUWVbK9bilzpla1FGvdat+9RUsJZa1KfAT/HaLYw3Gjvg9RLZa0d9So8Dmjh5RhzTBoxmHXD5gsg0fQO8ZG6/jhCb6ljGQ0Zj5l5U7NktKSy1FniiFrKVzXRkn7IUxz4+TluL0FOkAHJ/Ui9l5BiM3yfamQQzQaT3FwyTnI4DxOadF9hCRNvyMrOnFu1eCiVzx0pkVcGPvBRocsnveWlPAEUcJJyOoO7xMdj27pDYtvnelLjEoUjp+PB0kNevnp9JzOsNlBJwqLZgjO/CCL2XiAD2uUpzyK4rHWKfdz5QzAuxxUPcbNFHlE/59jfI3ZVkQBGRkgW9IVZDHQCMs2SsVkIIiwy+HRFs2JRD7K95c1xdhStZ2QMRKlScwydAB/HdK0XzvAeFA7/RiFWRNwwk/duyH+goJ23euREG+daXHeZ/zuk/GAo5cakKRb9CEtpZfFcXhDmK6OG5FGNLFVWLtrDt+TEPDRrh4yO9pDZBD1vaEdjKCdTn6da/SwN8WI926yk71xfZzhurxVpuLJkbzUcXkbOXHkHk65riuZ0wKTszgSjGDW7+Sa7CUd7ewhuaGhRUzcDnqo1IzFoaPvxscquoVJL0VbEgbmT3ZHGid52Zbj2UU6VAKQ0xn3OzHCKjKlLHv7UgZeDuJispOJKdeZwH3jRLhmAXM8HOZT/AGr1XggH+2FxxyXT/HHofCPOf3Hh9NHViRDbRhouUJwumMIXVQLO/eyg4Uw4XVXpwsdLDnQvPACnTBEj+SXPi0v0yRgJORXN+v5nLLOFWA1LOKvJxs8MZHg8nd1Rgrb1kxAs2oH3tHtZMcxc9OMzTEJaqxmrNNPQCI2zc4rTXy/z1IR1XrSJo0IavVXZb6y3nY0GMIC0hMSnjha+JTw0IQ3DrtrT/xftTdckOuuzOh8siubk9zqzC1Ri9wFKWjXvd6dM30Dw9/+8Z/jYVeZmZlXDqX13pn+JGh92Uoq3SxsYlZZ14FNQG+fx3cTZwhD+AKpfPZk6AD2iilFs32WJiieC4JuMHEizDhO3X129bElNqQLkWWk4RZ3fAjg0zupjxq6ZRr3sHGroF8Cq1q9QZ7POnk3Z0w/LwVfVwZOrZaoxYqF9KrmtkaQU0k8Drfcyy3ParmqSc86wpFlD8aT4r7HaUPtrtdTSCKL1J51cisflb9UcX5nhVQtVIrd6UsWJ2TBzSJyvRbo/YPPvfCaN96v46Itth9PdHFpJWN5L81TXIsDX3+0Ezf9u7yrLrf5tdf/GS/dDnQ8G/WBVesZL2M1lyuVoGouGc0cuKu4wkaP4ebwCTzJYWuub6EHx0OrjaEHChtGzOO8L9yxsBUewUWRLKs5q/bHA86sje5OuszHH1vcQGDOAjYLaYsmNdsWdFB5qwSNhVeyugEX/oh+31zq9eJ3dSPeD31LWISVbouVI0+auGnko6bbALd1wG0bIJs4XzjWZ1bDsJjQeLAwIevGndeQsPbY1BB21gF4OVs1KgZbxWxWzSkfPPQkPSybtRGl9QUa16aOYsQfo5zmf0QA1ciaz63hqC3wfHXvXPXgHC/3LgZBp/FtVOPAOgGvZtteK6XzeFMvoc0Za1cfSrfT+SGZ7MwZWyvwCScX3o+QZtsQuWtGez63HPGgiKaxSiqB3p2vYAC8Oh52gf/tP3niwV/5Sv6X626DDurLRua9IPOlRuXTvVR4YzqP2QppsVi8ENYsU6ygNZzSRe7ThQcploc1CLGQew3KDf1nQcblca3hRugWOfzvv/BG9waUg1j8SV98zxdXq4bF2xtBs34U7hmsFkDCbOI4kLKZ5ifZEvutiAThKcnIDyzMmyFGNORTg/N6n93WTOp1vQgrR0ZcCWm0yJY8G5ilqayKe0u0O2cqv74AAt/ILzSKqQWfRYhEBvyrjNVNuO3LOjU3hwvVPUkDn1o6igTdH/cIaOrUZyufqQFDBTEe4Kp+LOPLgadmdDQHQRmZvaN+bx7Q0E+dpsCxx44WU4NsKXj51ESSjfPXnCQUXc0bcFcrz1EtqEFO2JrWjVdDh9p74B0g4EjS4GnDYiCWrX/au/X7Q7d+/wFbn4V0Ixx3LwtUQR3KiobwYJYuilACLg8kbSzpAecgljSEB7P0iscujAYZxQQw7A8f5y1cySB3ED8CdATnJFtixXDnDvvHXSig7YwZjlEMzsSws1nTNOcSxYqat6UUyzafsK1TZfuWdynmZOJUgdmC2KH7+1xATN/c8uqisbOAadu20XdbljysiBqfF/3RMaicue+PQjUb4x/HONNxECXrah5omllJWI6UBtPxQBA5xIi/lenD6uclXZlj7nHzcm61AwWvGfIxLyj2GrKFuR/5W9N7eBNvVg9nrQDXOHv8AYydRRmmULo/TJYsUg59dmC01Hg18R4ex++C7HAuEfhDmKyjPTyKJhQt2l0NUm9vLC35TDnCeZIeyqCCr0XV4X1h9YMipWvnQHs/2ThN+Uz0cMcYdHrH/JW/YKse5hrh9LSiuzuAcOfrmGEn7sNv//y3aAEvsMthKcX7fzVa89Zo+ufnG7dsxhrvSHvHDanwLg4oYWFA2e/JPA/kpIWREDXP/sQEqPb/c1Kgke+SqdwWSKTaBW3A0zfeoXr5I6PqLzOpmq6ZVX+jY2mO44I0M8fa9i/t1O0BA+0/aOJsHdiYIzbtE7+D5sblyfksHezLbZPkGpB12CYmPBpPNpjf/5JG/0LWPvtt77ttvXethbYMVPvFG7FmP61wV9j0Tou56VNomXtGpUj5WETAlLnzG5LIEQIsSHLNpS4G/DTyO3xjQd8yQrS74/45Yr3blp709zVqhE+jsHu+z4l+4bA9CWu6TvHrGf0UNUxdLHw+L15jkvLXMNyWTChMR4BxuzGtRP16R0Ho3tTVGKdIygfMUkpTkBito5Q28Xs2cVe3YrhhfPyg3i3P1Atn71H+6P/R/n12fTMAAA=="
+          css_b64 = "H4sIAOALX2oC/51U0W6jMBB871dYqk5qpDoCmmsS8zXGXogbY3O2SUhO9++3JiQliKa6e0Gw9g6zszv7tNT8ZNtAK6ckFdYEZzX5TaTyDZ4wooxWBmipocsJ16oyVAWoPSMCTACXk4o3jKwbPG64lMpUjCRkFb+F1dYxcuDuhdK6DSAXOSnxH9SrMzCSZvHWn6dZDh40iIBUCuskIEzadMRbreQAeIkj4uWFOi5V66dU8ItsY6TgYl852xrJyHMi03WWTRgG6MLiGz4MheGFBonE7pKvcQQQrfPxwNhAudb2CHKMyjvlMbuxXgVlDSO8wLJQnZycqTISOkbesAKror4UDqizj2gGboRdVfCX9OfmlaTrd3xsV69kuc4m8iaxbg0hwviGi16QZbKCesqH0g4paSjDtSuFDcHWjGzuW3S5fMbLTlW7MJwH21zzjg6rMhWtrUQKB3BBCa6p0z0KinmAk0U68KsFI4BqXkAcuFJp/WhU0r6rs5qMcfHFYJusQ0iPfdtD7PY6TdJtPgToUcmwYyT7JzxK7X5C07dCgPeLLzOO3BnUYpI2RBdfCaJ8GBswDuHYZLNJ0ZKYNFSWJsmP/BPhgXc/Wh9UeeqHHEOMxDEBWkA4Apjht5s7Q21uhvofX37vwmvzry4aeoRDhvakfRWsn9QHUrCdxclDS8wfY+t6M/cuHljeceAiCrSY3w/jEsbXqbdlWDxqkK9xHUwXx9ywJ0OjPeICtcXHZRMG24od/u2yNm7DWrRoVYMriJsK3Cf+c1mW+aS+fnFkqwR3RhIXR/KGKr1nk7Jmb6Wbvri/cJPpzzIGAAA="
+          test_b64 = "H4sIAOALX2oC/61VS2/bOBC++1fMTTIqO1ayKVoDLYo+UORQbIDNoociB1qaWGwpUiVHrt1F/vsOKeph1ymwwAJBSM+D883MNyNZN8YS/AMlusLKDWaA+wYLykASPMKDNTUkO0noKJnJaD0DKITeCXdrpKY789lYVWZealEQvjN6hwdjvaRsGyULFv5VoMYb7UjoAr0Gd0K1E2s+NQeWRjuvtmhsiXb6ltOiuTMfrQyx6NAghFf/3Hxlx/HtHvabi9LUQuoLJQ6mpXgks1mfbJrcVsIh5G+h0wGng1YEFFChatC6JIN0Dq9eh7QlpYmH4QD1VmpEK/UWCsNYpeZkHJABqhAcKsaEJWwZ7tETECucjumkeX75RwaX16v5fEnmLab5arWaP2l8tTo29nc2fpzPIsTCV82Si22CxoTE+HQyVNgnamBjWl0yxh++f1BLpWSNZNGdB/xrz9OgBubP/na/hqsVAzv4W/5yBY/ZoP0hS6q8/Lm3qFBuKwoOLyZmnEV3DXl9+N4KlfLDn+o1XK+8309/veK7z/S/4Ho54Fpc/q+4fJt6YBHV2ISB+g6cpynXvGOo47hUebpZbJ0nEDNGWpAlapJ0OKk+N9PR4Lw+x3l4FW05crmGxBsvjJVMUaGSPhHhHNKN14fbIh80WtT8cPLOD0Mjim9oB9WQZy8IyebXo4CZvhOeVaEKvdQaCsL3uJ1IXSEUR8r731S19UYLqd4LEn9bxSBKvq1lLbZ44XbbZ/taZWH7dC6Pk5IMBeb0z++ZtK9a5il0RJrBYSnL+VIb6mapd/DS8+a+VnHwpgVjTM0hecKHi9jP6tM4fg5Gl3H6Ry7FbeigNmWrmEFCl/CgxNZPcmHqhmu9UQhFXJfdInsQxS+z3JXuQVr+z6yB5XJ5vLV5wZEVfhKSedbRKVjzO43l6AXd8eZlKW+9bxIXPv2EuRVfnjbIIZ/lhJxnghWt3SFHmtK38xsoyFNhDx+mLAuAlriXNBHDM8/T3ukEq7Bk9AhzSqbYiJMPTvolBMliEvfZCAsW+XxZiyZN+btYh9r6i6fMuCG+jOaxfvdHff/N5+809PTVfnXFE8Kn7mbSpEFB5uZMLSfj+lE0cbZH5aRqnwQVFZdaKIejwci1E1Vcl/eRt/z3L404E2hcCAAA="
+
+          def unpack(value):
+              return gzip.decompress(base64.b64decode(value)).decode()
+
+          page_path = Path('src/ui/pages/WorkspacePage.tsx')
+          text = page_path.read_text()
+          text = text.replace(
+              "  buildConnectedRoute,\n  connectedRoutePolyline,\n  conveyorPathPolyline,\n",
+              "  buildConnectedRoute,\n  canvasPointToWorld,\n  connectedRoutePolyline,\n  conveyorPathPolyline,\n",
+          )
+          text = text.replace(
+              "  createLayoutProject,\n  createSceneInstance,\n",
+              "  createLayoutProject,\n  createSceneInstance,\n  duplicateSceneInstance,\n  evaluateConveyorConnections,\n",
+          )
+          text = text.replace(
+              "  sampleConnectedRoute,\n  sampleConveyorPath,\n",
+              "  reorderConveyor,\n  sampleConnectedRoute,\n  sampleConveyorPath,\n",
+          )
+          start = text.index('function LayoutWorkspace({')
+          end = text.index('\nfunction RuntimeWorkspace(', start)
+          text = text[:start] + unpack(layout_b64) + text[end:]
+          page_path.write_text(text)
+
+          css_path = Path('src/ui/pages/workspace.css')
+          css = css_path.read_text()
+          marker = '.layout-grid-control {'
+          if marker not in css:
+              css_path.write_text(css.rstrip() + '\n' + unpack(css_b64))
+
+          Path('src/test/unit/phase1b-layout.test.ts').write_text(unpack(test_b64))
+          PY
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          package-manager-cache: false
+      - name: Verify increment
+        run: |
+          npm ci
+          npm run typecheck
+          npm run lint
+          npm test
+          npm run build
+      - name: Commit increment
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/ui/pages/WorkspacePage.tsx src/ui/pages/workspace.css src/test/unit/phase1b-layout.test.ts
+          git commit -m "feat: add Phase 1B drag, snap, and conveyor sequencing"
+          git push
