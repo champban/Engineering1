@@ -1,14 +1,12 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { ShellPage } from '@/ui/pages/ShellPage'
+import { WorkspacePage } from '@/ui/pages/WorkspacePage'
 
 const rootElement = document.getElementById('root')
-if (!rootElement) {
-  throw new Error('Root element #root not found')
-}
+if (!rootElement) throw new Error('Root element #root not found')
 
 createRoot(rootElement).render(
   <StrictMode>
-    <ShellPage />
+    <WorkspacePage />
   </StrictMode>,
 )
