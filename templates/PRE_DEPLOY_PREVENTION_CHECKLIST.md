@@ -6,6 +6,7 @@
 - [ ] อ่าน global `project_context.md` แล้ว
 - [ ] อ่าน prevention skill แล้ว
 - [ ] อ่าน `PROJECT_CONTEXT.md` ของโปรเจกต์แล้ว
+- [ ] อ่าน `skills/webapp-security-6d-audit/SKILL.md` แล้ว
 - [ ] ยืนยัน repository, branch, target environment และ deploy target
 - [ ] Scope และ acceptance criteria ชัดเจน
 - [ ] ระบุไฟล์/ระบบที่เปลี่ยน และไม่มี unrelated change
@@ -40,11 +41,25 @@
 - [ ] Applied migration version ตรงกับ environment
 - [ ] Permission Matrix ได้รับการอัปเดต
 - [ ] RLS test ผ่านสำหรับ Admin, Owner, Member และ Unauthorized
-- [ ] Service-role key ไม่ถูกใช้ใน browser/client
+- [ ] Service-role/secret key ไม่ถูกใช้ใน browser/client
 - [ ] Auth redirect URLs ครบ local/preview/production
 - [ ] Backup/restore procedure พร้อมสำหรับ change ที่มีความเสี่ยง
 
-## F. Netlify Preview Gate
+## F. Web App Security 6D Audit Gate
+- [ ] สร้าง/อัปเดต `docs/SECURITY_6D_AUDIT.md`
+- [ ] Dimension 1 — Identity and access: ผ่านหรือมี remediation ที่อนุมัติแล้ว
+- [ ] Dimension 2 — Secrets and data: ผ่านหรือมี remediation ที่อนุมัติแล้ว
+- [ ] Dimension 3 — Input and content safety: ผ่านหรือมี remediation ที่อนุมัติแล้ว
+- [ ] Dimension 4 — Browser and network controls: ผ่านหรือมี remediation ที่อนุมัติแล้ว
+- [ ] Dimension 5 — Supply chain and deployment: ผ่านหรือมี remediation ที่อนุมัติแล้ว
+- [ ] Dimension 6 — Operations and recovery: ผ่านหรือมี remediation ที่อนุมัติแล้ว
+- [ ] ไม่มี Critical finding ที่ยังเปิดอยู่
+- [ ] ไม่มี High finding ที่ยังไม่ได้แก้หรือไม่ได้รับ explicit approval ตาม policy
+- [ ] Audit decision เป็น `PASS` หรือ `CONDITIONAL PASS`
+- [ ] Audit commit SHA/environment ตรงกับ build ที่กำลังจะ deploy
+- [ ] สรุปผล audit และ report link ใน `PROJECT_CONTEXT.md`
+
+## G. Netlify Preview Gate
 - [ ] Netlify deploy จาก branch/commit ที่คาดไว้
 - [ ] Preview build สำเร็จ
 - [ ] GitHub commit SHA = Preview deploy SHA
@@ -57,8 +72,9 @@
 - [ ] Mobile/responsive smoke test ผ่านตาม scope
 - [ ] Diagnostic page แสดง environment/version/SHA ถูกต้องโดยไม่เปิดเผย secret
 
-## G. Production Gate
+## H. Production Gate
 - [ ] Preview ผ่านครบ
+- [ ] 6D Audit Gate ผ่านครบ
 - [ ] Reviewed commit ถูก merge เข้า production branch
 - [ ] Production deploy สำเร็จ
 - [ ] GitHub production SHA = Netlify production deploy SHA
@@ -67,13 +83,14 @@
 - [ ] Monitoring/log ไม่มี error ใหม่ที่สำคัญ
 - [ ] Last known-good deploy/rollback พร้อม
 
-## H. Prevention Closure
+## I. Prevention Closure
 - [ ] อัปเดต `PROJECT_CONTEXT.md`
 - [ ] อัปเดต Current Status และ deployment mapping
 - [ ] บันทึก incident ใน Prevented Recurrence Register
 - [ ] เพิ่ม prevention control แล้ว
 - [ ] เพิ่ม regression test/check แล้ว หรือบันทึกเหตุผลที่ automate ไม่ได้
 - [ ] อัปเดต Known Issues/Backlog
+- [ ] อัปเดต `docs/PROJECT_PERFORMANCE_KPI.md`
 
 ## Stop Conditions
 หยุด Deploy และแจ้งผู้ใช้ทันทีเมื่อ:
@@ -86,3 +103,7 @@
 - RLS/security test ไม่ผ่าน
 - ไม่มี backup สำหรับ destructive data change
 - พบ secret ใน source/diff/log
+- ไม่มี `docs/SECURITY_6D_AUDIT.md`
+- 6D audit decision เป็น `BLOCKED` หรือยังไม่มี decision
+- มี Critical finding ที่ยังเปิดอยู่
+- มี High finding ที่ยังไม่ได้แก้หรือไม่ได้รับ explicit approval ตาม policy
