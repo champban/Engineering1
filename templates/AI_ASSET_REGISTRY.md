@@ -23,16 +23,27 @@ These are always activated automatically for application work:
 | GitHub/Netlify/Supabase prevention skill | `skills/github-netlify-supabase-prevention/SKILL.md` | Evidence-first troubleshooting, deploy gates and recurrence prevention |
 | Fast and safe bootstrap skill | `skills/project-fast-safe-bootstrap/SKILL.md` | Reuse-first project setup and standardized execution workflow |
 | Progress and manual assist skill | `skills/progress-and-manual-assist/SKILL.md` | Percentage progress updates and exact user-side acceleration steps |
+| Project performance KPI skill | `skills/project-performance-kpi/SKILL.md` | Comparable milestone timing and verified efficiency measurement |
 | AI asset registry | `templates/AI_ASSET_REGISTRY.md` | Inventory and activation rules |
 | Target project context | Target repo root `PROJECT_CONTEXT.md` | Project-specific architecture, decisions, status, incidents and deploy mapping |
 
 If any mandatory asset cannot be retrieved, stop and inform the user. Do not guess.
 
+## Mandatory pre-deploy asset
+This asset must be read and executed before approving a Preview for Production promotion and before Production deployment:
+
+| Asset | Location | Purpose |
+|---|---|---|
+| Web App Security 6D Audit | `skills/webapp-security-6d-audit/SKILL.md` | Audits Identity/access, Secrets/data, Input safety, Browser/network, Supply chain/deployment, and Operations/recovery; produces a deployment decision |
+
+A missing or `BLOCKED` 6D audit is a Production stop condition.
+
 ## Available operational assets
 
 | Asset | Location | Activate when | What it improves |
 |---|---|---|---|
-| Project Context Template | `templates/PROJECT_CONTEXT_TEMPLATE.md` | Every new project | Continuity, decisions, deployment mapping and incident knowledge |
+| Project Context Template | `templates/PROJECT_CONTEXT_TEMPLATE.md` | Every new project | Continuity, decisions, deployment mapping, 6D audit and incident knowledge |
+| Project Performance KPI Template | `templates/PROJECT_PERFORMANCE_KPI_TEMPLATE.md` | Every new project and major release | Measures elapsed time, failures, rework and comparable improvement |
 | Pre-Deploy Prevention Checklist | `templates/PRE_DEPLOY_PREVENTION_CHECKLIST.md` | Any deployable app | Reduces failed deploys and skipped security checks |
 | Project Starter Manifest | `templates/PROJECT_STARTER_MANIFEST.md` | New React/Vite/Supabase/Netlify app | Faster setup and consistent required files |
 | Branch Strategy and Release Flow | `templates/BRANCH_STRATEGY_AND_RELEASE_FLOW.md` | Any GitHub-deployed app | Prevents wrong branch/commit and unsafe direct production changes |
@@ -70,8 +81,12 @@ Present this before implementation:
 - Prevention skill
 - Fast-safe bootstrap skill
 - Progress and manual assist skill
+- Project performance KPI skill
 - AI asset registry
 - Target PROJECT_CONTEXT.md (when repo exists)
+
+### Mandatory before Production
+- Web App Security 6D Audit
 
 ### Recommended for this project
 - [asset]: [one-line reason]
@@ -93,12 +108,14 @@ Present this before implementation:
 Activate:
 - Mandatory global assets
 - Project Context Template
+- Project Performance KPI Template
 - Project Starter Manifest
 - React/Vite/Supabase/Netlify Starter Overlay
 - Branch Strategy and Release Flow
 - Deployment Gate Automation
 - Diagnostic and Status Page Spec
 - Pre-Deploy Prevention Checklist
+- Web App Security 6D Audit before production approval
 - Claude.md and AGENTS.md when both AIs may work on the project
 
 ### Existing app bug or failed deploy
@@ -108,6 +125,7 @@ Activate:
 - Pre-Deploy Prevention Checklist
 - Diagnostic and Status Page Spec
 - Project Prevented Recurrence Register
+- Targeted 6D re-audit when the incident affects any audited dimension
 
 ### Supabase Auth/RLS/data change
 Activate:
@@ -116,6 +134,7 @@ Activate:
 - Root Cause workflow for defects
 - Backup/restore plan
 - Current Supabase skill/docs and security checklist
+- Web App Security 6D Audit dimensions 1, 2, 5 and 6 at minimum before production
 
 ### UI-only change with no data/security/deployment impact
 Activate:
@@ -123,6 +142,7 @@ Activate:
 - Project design system/UI specification
 - Relevant acceptance criteria
 - Still use Preview and production build when deployable code changes
+- Targeted 6D re-audit for input safety, browser/network or supply-chain impacts
 
 ## Progress and user-action protocol
 For long or multi-step work:
