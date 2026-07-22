@@ -69,6 +69,66 @@ Settings → Apps → เปิด Developer Mode (beta, ต้องแผน P
 | Version history | เก็บทุก commit ตลอดไป ฟรี | เก็บ version ~30 วัน หรือ 100 เวอร์ชันล่าสุด (แผนฟรี) |
 | ลบไฟล์ | commit เก่ายังอยู่ใน history เสมอ | ลบแล้วเข้าถังขยะ 30 วัน แล้วหายจริง |
 | จุดแข็ง | archive ระยะยาว, ไม่มีวันหาย | เข้าถึง/แชร์ไฟล์กับคนอื่นง่าย, ต่อ connector ไว้แล้ว |
-| บทบาทที่แนะนำ | **backup หลัก** — export JSON ไป commit เป็นระยะ | **สำรองเสริม** หรือใช้แชร์ไฟล์ทำงานทั่วไป ไม่ใช่ archive ระยะยาว |
+| บทบาทที่แนะนำ | **backup หลัก** — export JSON ไป commit เป็นระยะ | **สำรองเสริม** หรือใช้แชร์ไฟล์ทำงานทั่วไป ไม่ใช่ archive หลัก |
 
 **สรุป**: ใช้ GitHub เป็นที่ backup หลักของข้อมูล todo planner (และโปรเจคอื่นในอนาคต) ส่วน Google Drive ใช้เป็นทางเลือกเสริมเวลาต้องการแชร์ไฟล์เร็ว ๆ หรือทำงานร่วมกับเอกสารอื่นที่ไม่ใช่ archive หลัก
+
+---
+
+## 7. Mandatory Project Boot Sequence
+
+ก่อนสร้าง แก้ไข ทดสอบ Deploy หรือ Troubleshoot application ทุกโปรเจกต์ ต้องดำเนินการตามลำดับนี้:
+
+1. อ่านไฟล์นี้จาก `champban/Engineering1` branch `Doc`
+2. อ่าน `skills/github-netlify-supabase-prevention/SKILL.md`
+3. อ่าน `PROJECT_CONTEXT.md` ที่ root ของ repo โปรเจกต์นั้น
+4. ยืนยัน Repository, Branch, Environment, Supabase project และ Netlify deploy target
+5. หากดึงไฟล์หรือยืนยัน context ไม่ได้ ให้แจ้งผู้ใช้และหยุด ห้ามเดา
+
+โปรเจกต์ใหม่ต้องสร้าง `PROJECT_CONTEXT.md` จาก:
+- `templates/PROJECT_CONTEXT_TEMPLATE.md`
+
+ก่อน Deploy ต้องใช้:
+- `templates/PRE_DEPLOY_PREVENTION_CHECKLIST.md`
+
+---
+
+## 8. Mandatory Prevention and Non-Recurrence Rules
+
+เป้าหมายหลักไม่ใช่เพียงแก้ error แต่ต้องป้องกันไม่ให้ error เดิมเกิดซ้ำ
+
+### 8.1 Incident closure rule
+Incident หรือ bug สำคัญจะถือว่า `Closed` ได้เมื่อครบทุกข้อ:
+1. ยืนยัน Root cause ด้วย evidence
+2. แก้ไขและ verify ใน environment ที่เกี่ยวข้อง
+3. เพิ่ม Prevention Control
+4. เพิ่ม regression test/check หรือระบุเหตุผลชัดเจนว่าทำ automation ไม่ได้
+5. อัปเดต `PROJECT_CONTEXT.md`, rollback และ Known Issues
+
+### 8.2 Prevented Recurrence Register
+ทุกโปรเจกต์ต้องมีตารางนี้ใน `PROJECT_CONTEXT.md`:
+
+| ID | Symptom | Root cause | Fix | Prevention control | Automated test/check | Commit/Deploy | Status |
+|---|---|---|---|---|---|---|---|
+
+ห้ามบันทึกเพียง “แก้อะไร” ต้องบันทึก “ป้องกันอย่างไร” ด้วยเสมอ
+
+### 8.3 Mandatory workflow
+
+`Read context → Define acceptance criteria → Reproduce → Classify → Collect evidence → Isolate root cause → Backup/rollback point → Small fix → Local production build → Test → Commit → Push → Deploy Preview → Verify SHA → Production deploy → Smoke test → Record prevention`
+
+### 8.4 Deployment proof
+ก่อนยืนยันว่า Production ใช้งานได้ ต้องตรวจ:
+- Repository ถูกต้อง
+- Branch ถูกต้อง
+- GitHub commit SHA ตรงกับ Netlify Deploy SHA
+- Supabase migration version ถูกต้อง
+- Auth/RLS critical flow ผ่าน
+- Post-deploy smoke test ผ่าน
+
+### 8.5 Performance targets for similar future projects
+- ลดเวลา setup/deployment อย่างน้อย 50%
+- ลด failed deploy 50–70%
+- ลดเวลา Root-cause analysis 40–60%
+- ลด rework อย่างน้อย 50%
+- ลดการเกิดซ้ำของ known errors อย่างน้อย 80%
