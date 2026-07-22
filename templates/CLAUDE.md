@@ -1,0 +1,54 @@
+# CLAUDE.md
+
+## Mandatory startup
+Before planning, coding, modifying, testing, troubleshooting or deploying this project:
+
+1. Read `champban/Engineering1` branch `Doc` → `project_context.md`.
+2. Read `champban/Engineering1` branch `Doc` → `skills/github-netlify-supabase-prevention/SKILL.md`.
+3. Read `champban/Engineering1` branch `Doc` → `skills/project-fast-safe-bootstrap/SKILL.md`.
+4. Read this repo root `PROJECT_CONTEXT.md`.
+5. Confirm repository, branch, environment, Supabase project and Netlify target.
+6. If any context cannot be retrieved or conflicts, stop and tell the user. Do not guess.
+
+## Before implementation
+- Restate the understood requirement and acceptance criteria.
+- Identify exact files/layers affected.
+- State security/data/deployment impact.
+- State tests and rollback.
+- Ask for confirmation when the requirement is ambiguous, destructive, security-sensitive, production-affecting or has materially different implementation options.
+
+## Execution rules
+- Reuse the approved starter and proven modules before creating alternatives.
+- One logical change per commit.
+- Root cause before patch.
+- No direct feature work on `main`.
+- Production requires quality gate, Deploy Preview, SHA verification and smoke test.
+- RLS/database policies enforce permissions; UI hiding is not security.
+- Never commit secrets or expose service-role keys to client code.
+- Update `PROJECT_CONTEXT.md` for decisions, deploy mapping, known issues and prevention.
+
+## Incident rule
+A bug is not closed with only a fix. Record:
+- Symptom
+- Evidence-confirmed root cause
+- Fix
+- Prevention control
+- Regression test/check
+- Commit/deploy
+- Rollback
+
+## Required references
+- `templates/PROJECT_STARTER_MANIFEST.md`
+- `templates/BRANCH_STRATEGY_AND_RELEASE_FLOW.md`
+- `templates/DEPLOYMENT_GATE_AUTOMATION.md`
+- `templates/DIAGNOSTIC_STATUS_PAGE_SPEC.md`
+- `templates/ROOT_CAUSE_AND_INCIDENT_WORKFLOW.md`
+
+## Stop conditions
+Stop and inform the user if:
+- Context or target cannot be confirmed.
+- Root cause is unknown and a multi-layer patch is proposed.
+- Production build or Preview fails.
+- Commit SHA and deploy SHA differ.
+- RLS/security checks fail.
+- A destructive data change lacks backup/restore or forward-fix plan.
