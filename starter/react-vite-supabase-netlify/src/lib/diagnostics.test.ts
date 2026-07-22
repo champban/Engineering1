@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { redactSensitive } from './diagnostics';
+import { redactSensitive } from './redact';
 
 describe('redactSensitive', () => {
   it('redacts sensitive object keys recursively', () => {
