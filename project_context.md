@@ -72,14 +72,15 @@ Settings → Apps → เปิด Developer Mode → เพิ่ม custom con
 2. อ่าน `skills/github-netlify-supabase-prevention/SKILL.md`
 3. อ่าน `skills/project-fast-safe-bootstrap/SKILL.md`
 4. อ่าน `skills/progress-and-manual-assist/SKILL.md`
-5. อ่าน `templates/AI_ASSET_REGISTRY.md`
-6. อ่าน `PROJECT_CONTEXT.md` ที่ root ของ repo โปรเจกต์นั้น เมื่อ repo มีอยู่แล้ว
-7. ยืนยัน Repository, working branch, production branch, Environment, Supabase project และ Netlify deploy target
-8. ตรวจหา project-specific documents, skills, starter, design rules, data model, security rules, prior-project learning และ reusable modules ที่เกี่ยวข้อง
-9. เสนอ **Activation Set** ให้ผู้ใช้ โดยแสดงว่าอะไรถูก activate อัตโนมัติและอะไรแนะนำให้เพิ่ม
-10. ถามผู้ใช้ก่อนเริ่มสร้าง application ใหม่ว่า ต้องการให้ AI อ่าน/activate ข้อตกลง, skill, starter overlay, template หรือเอกสารเฉพาะเพิ่มเติมหรือไม่
-11. รอผู้ใช้ยืนยัน Activation Set ก่อนเขียน code สำหรับโปรเจกต์ใหม่หรือ architectural change สำคัญ
-12. หากดึงไฟล์ ยืนยัน context หรือหาความขัดแย้งไม่ได้ ให้แจ้งผู้ใช้และหยุด ห้ามเดา
+5. อ่าน `skills/project-performance-kpi/SKILL.md`
+6. อ่าน `templates/AI_ASSET_REGISTRY.md`
+7. อ่าน `PROJECT_CONTEXT.md` ที่ root ของ repo โปรเจกต์นั้น เมื่อ repo มีอยู่แล้ว
+8. ยืนยัน Repository, working branch, production branch, Environment, Supabase project และ Netlify deploy target
+9. ตรวจหา project-specific documents, skills, starter, design rules, data model, security rules, prior-project learning และ reusable modules ที่เกี่ยวข้อง
+10. เสนอ **Activation Set** ให้ผู้ใช้ โดยแสดงว่าอะไรถูก activate อัตโนมัติและอะไรแนะนำให้เพิ่ม
+11. ถามผู้ใช้ก่อนเริ่มสร้าง application ใหม่ว่า ต้องการให้ AI อ่าน/activate ข้อตกลง, skill, starter overlay, template หรือเอกสารเฉพาะเพิ่มเติมหรือไม่
+12. รอผู้ใช้ยืนยัน Activation Set ก่อนเขียน code สำหรับโปรเจกต์ใหม่หรือ architectural change สำคัญ
+13. หากดึงไฟล์ ยืนยัน context หรือหาความขัดแย้งไม่ได้ ให้แจ้งผู้ใช้และหยุด ห้ามเดา
 
 ### Proactive rule
 - ห้ามรอให้ผู้ใช้จำชื่อไฟล์หรือสั่งเอง
@@ -91,13 +92,20 @@ Settings → Apps → เปิด Developer Mode → เพิ่ม custom con
 ### New project baseline
 โปรเจกต์ใหม่ต้องสร้าง:
 - `PROJECT_CONTEXT.md` จาก `templates/PROJECT_CONTEXT_TEMPLATE.md`
+- `docs/PROJECT_PERFORMANCE_KPI.md` จาก `templates/PROJECT_PERFORMANCE_KPI_TEMPLATE.md`
 - `CLAUDE.md` จาก `templates/CLAUDE.md` เมื่อ Claude อาจทำงานใน repo
 - `AGENTS.md` จาก `templates/AGENTS.md` เมื่อ ChatGPT/Codex อาจทำงานใน repo
 - ใช้ starter ที่ตรง stack จาก asset registry
 
-ก่อน Deploy ต้องใช้:
-- `templates/PRE_DEPLOY_PREVENTION_CHECKLIST.md`
-- Deployment gate และ branch strategy ที่ระบุใน Activation Set
+### Mandatory pre-deploy activation
+ก่อนอนุมัติ Deploy Preview เพื่อขึ้น Production และก่อน Production deploy ทุกครั้ง ต้อง:
+1. อ่านและใช้ `skills/webapp-security-6d-audit/SKILL.md`
+2. สร้าง/อัปเดต `docs/SECURITY_6D_AUDIT.md`
+3. ใช้ `templates/PRE_DEPLOY_PREVENTION_CHECKLIST.md`
+4. ผ่าน Deployment Gate และ branch strategy ที่ระบุใน Activation Set
+5. บันทึก 6D decision, commit SHA, environment และ report link ใน `PROJECT_CONTEXT.md`
+
+Production deploy ถูกห้ามเมื่อ 6D decision เป็น `BLOCKED`, ไม่มีรายงาน หรือมี Critical/High risk ที่ยังไม่ถูกแก้หรืออนุมัติตาม policy
 
 ---
 
@@ -109,7 +117,10 @@ Assets ที่พร้อมใช้ปัจจุบัน:
 - `skills/github-netlify-supabase-prevention/SKILL.md`
 - `skills/project-fast-safe-bootstrap/SKILL.md`
 - `skills/progress-and-manual-assist/SKILL.md`
+- `skills/project-performance-kpi/SKILL.md`
+- `skills/webapp-security-6d-audit/SKILL.md`
 - `templates/PROJECT_CONTEXT_TEMPLATE.md`
+- `templates/PROJECT_PERFORMANCE_KPI_TEMPLATE.md`
 - `templates/PRE_DEPLOY_PREVENTION_CHECKLIST.md`
 - `templates/PROJECT_STARTER_MANIFEST.md`
 - `templates/BRANCH_STRATEGY_AND_RELEASE_FLOW.md`
@@ -146,7 +157,7 @@ Incident หรือ bug สำคัญจะถือว่า `Closed` ไ�
 
 ### 9.3 Mandatory workflow
 
-`Read context → Propose Activation Set → User confirmation → Define acceptance criteria → Reproduce/Classify when fixing → Collect evidence → Isolate root cause → Backup/rollback point → Small fix → Local production build → Test → Commit → Push → Deploy Preview → Verify SHA → Production deploy → Smoke test → Record prevention`
+`Read context → Propose Activation Set → User confirmation → Define acceptance criteria → Start KPI timing → Reproduce/Classify when fixing → Collect evidence → Isolate root cause → Backup/rollback point → Small fix → Local production build → Test → Commit → Push → Deploy Preview → Verify SHA → Run/close 6D audit → Production deploy → Smoke test → Record prevention and KPI`
 
 ### 9.4 Deployment proof
 ก่อนยืนยันว่า Production ใช้งานได้ ต้องตรวจ:
@@ -155,17 +166,21 @@ Incident หรือ bug สำคัญจะถือว่า `Closed` ไ�
 - GitHub commit SHA ตรงกับ Netlify Deploy SHA
 - Supabase migration version ถูกต้อง
 - Auth/RLS critical flow ผ่าน
+- 6D audit decision เป็น `PASS` หรือ `CONDITIONAL PASS` ตาม policy
+- ไม่มี Critical/High risk ที่ยังไม่ได้รับการจัดการ
 - Post-deploy smoke test ผ่าน
 - `/status` และ protected diagnostics แสดง release/environment ที่ถูกต้องโดยไม่เปิดเผย secret
 
 ### 9.5 Performance targets for similar future projects
+- M4 Release Candidate / Quality Gate ≤ 7 ชั่วโมง
+- M6 Production Verified ≤ 12 ชั่วโมง
 - ลดเวลา setup/deployment อย่างน้อย 50%
 - ลด failed deploy 50–70%
 - ลดเวลา Root-cause analysis 40–60%
 - ลด rework อย่างน้อย 50%
 - ลดการเกิดซ้ำของ known errors อย่างน้อย 80%
 
-ต้องเก็บ baseline และ actual result ใน `PROJECT_CONTEXT.md` ห้ามอ้างว่าเร็วขึ้นโดยไม่มีข้อมูล
+ต้องเก็บ baseline และ actual result ใน `docs/PROJECT_PERFORMANCE_KPI.md` ห้ามอ้างว่าเร็วขึ้นโดยไม่มีข้อมูล และห้ามเปรียบเทียบ milestone คนละระดับ
 
 ### 9.6 Progress reporting and manual acceleration
 สำหรับงานหลายขั้นตอน งานที่ต้องใช้หลาย tools งาน deploy/troubleshoot หรือใช้เวลานาน:
@@ -177,3 +192,14 @@ Incident หรือ bug สำคัญจะถือว่า `Closed` ไ�
 - ห้ามให้ผู้ใช้ส่ง password, token, service-role key, secret หรือข้อมูลลูกค้าที่ sensitive เข้ามาใน chat
 - ห้ามโยนงานให้ผู้ใช้ถ้า AI ทำเองได้อย่างปลอดภัยผ่าน connector/tool
 - Manual step ที่เกิดซ้ำต้องถูกเปลี่ยนเป็น automation backlog, reusable checklist หรือ documented unavoidable control
+
+### 9.7 Mandatory Web App Security 6D Audit
+ทุก deployable web application ต้องตรวจ 6 มิติ:
+1. Identity and access
+2. Secrets and data
+3. Input and content safety
+4. Browser and network controls
+5. Supply chain and deployment
+6. Operations and recovery
+
+ผลตรวจต้องอยู่ใน `docs/SECURITY_6D_AUDIT.md` และสรุปใน `PROJECT_CONTEXT.md` พร้อม decision, residual risk, owner และ due date ก่อน Production deploy
