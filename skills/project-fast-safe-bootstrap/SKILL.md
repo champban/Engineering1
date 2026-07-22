@@ -1,7 +1,7 @@
 ---
 name: project-fast-safe-bootstrap
 description: Mandatory bootstrap and execution workflow for every new or existing web application. Optimized for React/Vite/TypeScript + Supabase + Netlify + GitHub and reusable by ChatGPT and Claude.
-version: 1.0.0
+version: 1.1.0
 ---
 
 # Project Fast & Safe Bootstrap Skill
@@ -9,14 +9,31 @@ version: 1.0.0
 ## Mandatory trigger
 Use this skill before planning, coding, modifying, testing, troubleshooting, deploying, or handing over any application project.
 
-## Non-negotiable boot sequence
+## Non-negotiable boot and activation sequence
 1. Read `champban/Engineering1` branch `Doc` → `project_context.md`.
 2. Read `skills/github-netlify-supabase-prevention/SKILL.md`.
 3. Read this skill.
-4. Read the target repo root `PROJECT_CONTEXT.md`.
-5. Confirm exact repository, working branch, production branch, environment, Supabase project, Netlify site, and expected deployment target.
-6. If any required context cannot be retrieved or conflicts, stop and inform the user. Do not guess.
-7. Before code or production-affecting changes, summarize understanding, proposed scope, risks, tests, rollback, and recommendation. Obtain user confirmation when the request is ambiguous, high-risk, destructive, or has multiple valid implementations.
+4. Read `templates/AI_ASSET_REGISTRY.md`.
+5. Read the target repo root `PROJECT_CONTEXT.md` when the repo exists.
+6. Confirm exact repository, working branch, production branch, environment, Supabase project, Netlify site, and expected deployment target.
+7. Inspect the target repo for project-specific agreements, product requirements, design standards, data models, security rules, deployment rules, previous lessons, reusable modules and AI instruction files.
+8. Propose an **Activation Set** showing:
+   - assets activated automatically;
+   - assets recommended for this project;
+   - project-specific documents found;
+   - decisions requiring user confirmation.
+9. Ask the user whether any additional agreement, skill, starter overlay, template, prior-project learning or project-specific document should be activated before the implementation plan is finalized.
+10. Wait for confirmation before coding a new application, changing architecture, selecting a starter/stack, or making a destructive/high-risk change.
+11. If any required context cannot be retrieved or conflicts, stop and inform the user. Do not guess.
+12. Before code or production-affecting changes, summarize understanding, proposed scope, risks, tests, prevention control, rollback, and recommendation.
+
+## Proactive asset rule
+- Do not wait for the user to remember file names.
+- Use `templates/AI_ASSET_REGISTRY.md` as the current inventory.
+- Recommend the safest minimal Activation Set based on stack, scope and risk.
+- Mandatory global assets are read automatically without asking the user to repeat the instruction.
+- The activation question is specifically for additional project-specific or optional assets.
+- Whenever a reusable asset is created, renamed or deprecated, update the registry in the same logical change.
 
 ## Proven baseline stack
 Use this starter only when the project uses or accepts:
@@ -47,19 +64,53 @@ Starter reference:
 - `starter/react-vite-supabase-netlify/`
 
 Operational references:
+- `templates/AI_ASSET_REGISTRY.md`
 - `templates/PROJECT_STARTER_MANIFEST.md`
 - `templates/BRANCH_STRATEGY_AND_RELEASE_FLOW.md`
 - `templates/DEPLOYMENT_GATE_AUTOMATION.md`
 - `templates/DIAGNOSTIC_STATUS_PAGE_SPEC.md`
 - `templates/ROOT_CAUSE_AND_INCIDENT_WORKFLOW.md`
 
+## Activation Set format
+Before implementation, present:
+
+```md
+## Proposed Activation Set
+
+### Automatically activated
+- Global project context
+- GitHub/Netlify/Supabase prevention skill
+- Fast-safe bootstrap skill
+- AI asset registry
+- Target PROJECT_CONTEXT.md (when repo exists)
+
+### Recommended for this project
+- [asset]: [reason]
+
+### Project-specific documents found
+- [document]: [what it controls]
+
+### Decisions requiring confirmation
+- Stack/starter choice:
+- Branch strategy:
+- Database/Auth:
+- Hosting:
+- Additional standards to activate:
+```
+
+Ask:
+
+> I have loaded the mandatory project rules. Do you want to add any specific agreement, skill, starter, design standard, prior-project learning or document before I finalize the implementation plan?
+
 ## Faster project setup workflow
 Execute in this exact order:
 
-### Stage 0 — Context and reuse decision
-- Read all mandatory context.
+### Stage 0 — Context, activation and reuse decision
+- Read all mandatory context and the asset registry.
+- Discover project-specific documents and existing reusable modules.
+- Propose the Activation Set and obtain confirmation when required.
 - Identify which requirements match an existing reusable module: Auth, Profiles, Invitation, Membership, Roles, Comments, Realtime, Audit, Status, Diagnostics.
-- Record reused modules and required deviations in `PROJECT_CONTEXT.md`.
+- Record activated assets, reused modules and required deviations in `PROJECT_CONTEXT.md`.
 - Do not rebuild a proven module without documenting why reuse is unsafe or insufficient.
 
 ### Stage 1 — Requirement lock
@@ -171,6 +222,7 @@ These controls come directly from errors experienced in prior GitHub + Netlify +
 | Debug loop consumed excessive time | Evidence-first incident workflow and Prevented Recurrence Register |
 | Secret exposed in source/log | Environment secret store, `.gitignore`, redaction tests and secret scan |
 | Supabase data at risk during migration | Timestamped backup/export and restore/forward-fix plan before destructive change |
+| AI ignored an available standard or starter | Mandatory asset registry review and user-confirmed Activation Set before coding |
 
 ## Diagnostic and status requirement
 Every app must expose:
