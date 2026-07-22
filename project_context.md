@@ -1,6 +1,6 @@
 # Project Context: AI Collaboration & Data Storage Reference
 
-*บันทึกไว้อ้างอิงสำหรับโปรเจคในอนาคต — สรุปจากการคุยเรื่อง MCP, การ collaborate ระหว่าง Claude กับ ChatGPT, และการเลือกที่เก็บข้อมูล*
+*บันทึกไว้อ้างอิงสำหรับโปรเจคในอนาคต — สรุปจากการคุยเรื่อง MCP, การ collaborate ระหว่าง Claude กับ ChatGPT, การเลือกที่เก็บข้อมูล และมาตรฐานป้องกันข้อผิดพลาดซ้ำ*
 
 ---
 
@@ -10,7 +10,7 @@
 **หลักการ collaborate ข้าม AI**: ถ้า Claude และ ChatGPT ต่อเข้า MCP server *เดียวกัน* (เช่น Supabase) ทั้งคู่จะอ่าน/เขียนข้อมูลชุดเดียวกันได้แบบ real-time แม้อยู่คนละ session
 
 **วิธีต่อ ChatGPT กับ MCP server เดียวกับ Claude**:
-Settings → Apps → เปิด Developer Mode (beta, ต้องแผน Plus ขึ้นไป) → เพิ่ม custom connector ด้วย URL เดียวกับที่ Claude ใช้
+Settings → Apps → เปิด Developer Mode → เพิ่ม custom connector ด้วย URL เดียวกับที่ Claude ใช้
 
 ---
 
@@ -27,16 +27,11 @@ Settings → Apps → เปิด Developer Mode (beta, ต้องแผน P
 
 ## 3. GitHub vs Supabase+Netlify — เลือกใช้เมื่อไหร่
 
-| | GitHub | Supabase + Netlify (MCP) |
+| | GitHub | Supabase + Netlify |
 |---|---|---|
-| เก็บอะไร | โค้ด (version control) | ข้อมูล/state จริง (real-time) |
-| การทำงานร่วมของ AI | commit → PR → merge (ไม่ real-time) | เขียน/อ่าน database ตรง ๆ (real-time) |
-| เหมาะกับ | พัฒนา/แชร์โค้ดของแอป | ข้อมูลที่เปลี่ยนบ่อย เช่น todo list, log |
-
-**ราคา (free tier เพียงพอสำหรับโปรเจคเล็ก)**
-- GitHub: ฟรี 100% ไม่มีเงื่อนไข (repo/collaborator ไม่จำกัดสำหรับบุคคล)
-- Supabase: ฟรี แต่ project pause ถ้าไม่ใช้ 7 วัน — Pro $25/เดือน
-- Netlify: ฟรี 300 credits/เดือน — Personal $9 / Pro $19-20/เดือน
+| เก็บอะไร | โค้ด (version control) | ข้อมูล/state จริง และ hosting |
+| การทำงานร่วมของ AI | commit → PR → merge | อ่าน/เขียน database และ deploy ตาม connector/tools |
+| เหมาะกับ | พัฒนา/แชร์โค้ดของแอป | ข้อมูลที่เปลี่ยนบ่อย, Auth, realtime และ production hosting |
 
 ---
 
@@ -44,60 +39,94 @@ Settings → Apps → เปิด Developer Mode (beta, ต้องแผน P
 
 | | GitHub | Supabase |
 |---|---|---|
-| Access control | private repo + 2FA (แต่ไม่มี row-level security) | Row Level Security (RLS) ระดับ record จริง |
-| ข้อมูลลบแล้ว | **ไม่หายจริง** — อยู่ใน git history ตลอดไป (ปัญหาถ้าเป็นข้อมูล sensitive) | ลบแล้วลบจริง |
-| Backup (free tier) | ทุก commit = backup ฟรีตลอดไป | **ไม่มี backup อัตโนมัติเลย** ในแผนฟรี |
-| Backup (paid) | เหมือนเดิม (ฟรีอยู่แล้ว) | Pro $25 = daily backup เก็บ 7 วัน |
+| Access control | private repo + 2FA แต่ไม่มี row-level security | Row Level Security (RLS) ระดับ record |
+| ข้อมูลลบแล้ว | commit เก่ายังอยู่ใน git history | ลบจาก database ตาม retention/backup policy |
+| Backup | source code และ migrations มี history จาก commit | ต้องกำหนด backup/export และ restore plan ให้ชัดเจน |
 
 ---
 
 ## 5. แนวทางที่แนะนำ (Hybrid)
-ใช้ **Supabase** เป็นที่เก็บข้อมูลใช้งานจริง (ได้ RLS + real-time collaboration ระหว่าง Claude/ChatGPT)
-**บวก** export ข้อมูลเป็น JSON ไป commit เก็บใน **GitHub repo** เป็นระยะ (เช่นทุกคืน)
-→ ได้ทั้งความปลอดภัยระดับ record ของ Supabase และ backup ฟรีตลอดไปจาก git history โดยไม่ต้องจ่าย Supabase Pro
+ใช้ **Supabase** เป็นระบบข้อมูล/Auth หลัก และใช้ **GitHub** เป็น source code, migrations และ structured export backup หลักตามรอบที่กำหนด
 
-**สำคัญ**: Supabase ไม่ sync กับ GitHub หรือ Google Drive เองอัตโนมัติ — ต้องมี export/backup process เสมอ ไม่ว่าจะเลือกปลายทางใด
-
-**Use case แรกที่จะทดสอบแนวทางนี้**: Todo Planner (โครงสร้างข้อมูลง่าย, เสี่ยงต่ำ, เห็นประโยชน์ของ real-time ชัดเจน) ก่อนนำไปใช้กับโปรเจคที่ stakes สูงกว่า เช่น palletizer/HVAC tools
+**สำคัญ**: Supabase ไม่ sync กับ GitHub หรือ Google Drive เองอัตโนมัติ ต้องมี export/backup process เสมอ
 
 ---
 
-## 6. Backup ปลายทาง: GitHub (หลัก) vs Google Drive (เสริม)
+## 6. Backup ปลายทาง
 
-| | GitHub (หลัก) | Google Drive (เสริม) |
-|---|---|---|
-| Version history | เก็บทุก commit ตลอดไป ฟรี | เก็บ version ~30 วัน หรือ 100 เวอร์ชันล่าสุด (แผนฟรี) |
-| ลบไฟล์ | commit เก่ายังอยู่ใน history เสมอ | ลบแล้วเข้าถังขยะ 30 วัน แล้วหายจริง |
-| จุดแข็ง | archive ระยะยาว, ไม่มีวันหาย | เข้าถึง/แชร์ไฟล์กับคนอื่นง่าย, ต่อ connector ไว้แล้ว |
-| บทบาทที่แนะนำ | **backup หลัก** — export JSON ไป commit เป็นระยะ | **สำรองเสริม** หรือใช้แชร์ไฟล์ทำงานทั่วไป ไม่ใช่ archive หลัก |
+| ปลายทาง | บทบาท |
+|---|---|
+| GitHub | source code, migrations, structured export และ long-term change history หลัก |
+| Supabase | production database/Auth source of truth |
+| Google Drive | เอกสารและ backup เสริมสำหรับการแชร์/เข้าถึง |
 
-**สรุป**: ใช้ GitHub เป็นที่ backup หลักของข้อมูล todo planner (และโปรเจคอื่นในอนาคต) ส่วน Google Drive ใช้เป็นทางเลือกเสริมเวลาต้องการแชร์ไฟล์เร็ว ๆ หรือทำงานร่วมกับเอกสารอื่นที่ไม่ใช่ archive หลัก
+ห้ามเก็บ secret หรือข้อมูล sensitive ลง Git history
 
 ---
 
-## 7. Mandatory Project Boot Sequence
+## 7. Mandatory Project Boot and Activation Sequence
 
-ก่อนสร้าง แก้ไข ทดสอบ Deploy หรือ Troubleshoot application ทุกโปรเจกต์ ต้องดำเนินการตามลำดับนี้:
+ก่อนวางแผน สร้าง แก้ไข ทดสอบ Deploy หรือ Troubleshoot application ทุกโปรเจกต์ ต้องดำเนินการตามลำดับนี้:
 
 1. อ่านไฟล์นี้จาก `champban/Engineering1` branch `Doc`
 2. อ่าน `skills/github-netlify-supabase-prevention/SKILL.md`
-3. อ่าน `PROJECT_CONTEXT.md` ที่ root ของ repo โปรเจกต์นั้น
-4. ยืนยัน Repository, Branch, Environment, Supabase project และ Netlify deploy target
-5. หากดึงไฟล์หรือยืนยัน context ไม่ได้ ให้แจ้งผู้ใช้และหยุด ห้ามเดา
+3. อ่าน `skills/project-fast-safe-bootstrap/SKILL.md`
+4. อ่าน `templates/AI_ASSET_REGISTRY.md`
+5. อ่าน `PROJECT_CONTEXT.md` ที่ root ของ repo โปรเจกต์นั้น เมื่อ repo มีอยู่แล้ว
+6. ยืนยัน Repository, working branch, production branch, Environment, Supabase project และ Netlify deploy target
+7. ตรวจหา project-specific documents, skills, starter, design rules, data model, security rules, prior-project learning และ reusable modules ที่เกี่ยวข้อง
+8. เสนอ **Activation Set** ให้ผู้ใช้ โดยแสดงว่าอะไรถูก activate อัตโนมัติและอะไรแนะนำให้เพิ่ม
+9. ถามผู้ใช้ก่อนเริ่มสร้าง application ใหม่ว่า ต้องการให้ AI อ่าน/activate ข้อตกลง, skill, starter overlay, template หรือเอกสารเฉพาะเพิ่มเติมหรือไม่
+10. รอผู้ใช้ยืนยัน Activation Set ก่อนเขียน code สำหรับโปรเจกต์ใหม่หรือ architectural change สำคัญ
+11. หากดึงไฟล์ ยืนยัน context หรือหาความขัดแย้งไม่ได้ ให้แจ้งผู้ใช้และหยุด ห้ามเดา
 
-โปรเจกต์ใหม่ต้องสร้าง `PROJECT_CONTEXT.md` จาก:
-- `templates/PROJECT_CONTEXT_TEMPLATE.md`
+### Proactive rule
+- ห้ามรอให้ผู้ใช้จำชื่อไฟล์หรือสั่งเอง
+- AI ต้องรู้ asset ที่มีอยู่จาก `templates/AI_ASSET_REGISTRY.md`
+- AI ต้องแนะนำ asset ที่เหมาะกับ stack, scope และ risk ของงาน
+- ถ้าผู้ใช้ไม่แน่ใจ ให้เสนอ safest minimal Activation Set
+- Mandatory global assets อ่านอัตโนมัติโดยไม่ต้องถามซ้ำ แต่ยังต้องถามว่ามีข้อตกลงเฉพาะเพิ่มเติมหรือไม่
+
+### New project baseline
+โปรเจกต์ใหม่ต้องสร้าง:
+- `PROJECT_CONTEXT.md` จาก `templates/PROJECT_CONTEXT_TEMPLATE.md`
+- `CLAUDE.md` จาก `templates/CLAUDE.md` เมื่อ Claude อาจทำงานใน repo
+- `AGENTS.md` จาก `templates/AGENTS.md` เมื่อ ChatGPT/Codex อาจทำงานใน repo
+- ใช้ starter ที่ตรง stack จาก asset registry
 
 ก่อน Deploy ต้องใช้:
 - `templates/PRE_DEPLOY_PREVENTION_CHECKLIST.md`
+- Deployment gate และ branch strategy ที่ระบุใน Activation Set
 
 ---
 
-## 8. Mandatory Prevention and Non-Recurrence Rules
+## 8. Available Reusable Assets
+
+Source of truth ฉบับเต็มอยู่ที่ `templates/AI_ASSET_REGISTRY.md`
+
+Assets ที่พร้อมใช้ปัจจุบัน:
+- `skills/github-netlify-supabase-prevention/SKILL.md`
+- `skills/project-fast-safe-bootstrap/SKILL.md`
+- `templates/PROJECT_CONTEXT_TEMPLATE.md`
+- `templates/PRE_DEPLOY_PREVENTION_CHECKLIST.md`
+- `templates/PROJECT_STARTER_MANIFEST.md`
+- `templates/BRANCH_STRATEGY_AND_RELEASE_FLOW.md`
+- `templates/DEPLOYMENT_GATE_AUTOMATION.md`
+- `templates/DIAGNOSTIC_STATUS_PAGE_SPEC.md`
+- `templates/ROOT_CAUSE_AND_INCIDENT_WORKFLOW.md`
+- `templates/CLAUDE.md`
+- `templates/AGENTS.md`
+- `starter/react-vite-supabase-netlify/`
+
+ทุกครั้งที่สร้าง/แก้/ยกเลิก reusable asset ต้องอัปเดต `templates/AI_ASSET_REGISTRY.md` ใน logical change เดียวกัน
+
+---
+
+## 9. Mandatory Prevention and Non-Recurrence Rules
 
 เป้าหมายหลักไม่ใช่เพียงแก้ error แต่ต้องป้องกันไม่ให้ error เดิมเกิดซ้ำ
 
-### 8.1 Incident closure rule
+### 9.1 Incident closure rule
 Incident หรือ bug สำคัญจะถือว่า `Closed` ได้เมื่อครบทุกข้อ:
 1. ยืนยัน Root cause ด้วย evidence
 2. แก้ไขและ verify ใน environment ที่เกี่ยวข้อง
@@ -105,7 +134,7 @@ Incident หรือ bug สำคัญจะถือว่า `Closed` ไ�
 4. เพิ่ม regression test/check หรือระบุเหตุผลชัดเจนว่าทำ automation ไม่ได้
 5. อัปเดต `PROJECT_CONTEXT.md`, rollback และ Known Issues
 
-### 8.2 Prevented Recurrence Register
+### 9.2 Prevented Recurrence Register
 ทุกโปรเจกต์ต้องมีตารางนี้ใน `PROJECT_CONTEXT.md`:
 
 | ID | Symptom | Root cause | Fix | Prevention control | Automated test/check | Commit/Deploy | Status |
@@ -113,11 +142,11 @@ Incident หรือ bug สำคัญจะถือว่า `Closed` ไ�
 
 ห้ามบันทึกเพียง “แก้อะไร” ต้องบันทึก “ป้องกันอย่างไร” ด้วยเสมอ
 
-### 8.3 Mandatory workflow
+### 9.3 Mandatory workflow
 
-`Read context → Define acceptance criteria → Reproduce → Classify → Collect evidence → Isolate root cause → Backup/rollback point → Small fix → Local production build → Test → Commit → Push → Deploy Preview → Verify SHA → Production deploy → Smoke test → Record prevention`
+`Read context → Propose Activation Set → User confirmation → Define acceptance criteria → Reproduce/Classify when fixing → Collect evidence → Isolate root cause → Backup/rollback point → Small fix → Local production build → Test → Commit → Push → Deploy Preview → Verify SHA → Production deploy → Smoke test → Record prevention`
 
-### 8.4 Deployment proof
+### 9.4 Deployment proof
 ก่อนยืนยันว่า Production ใช้งานได้ ต้องตรวจ:
 - Repository ถูกต้อง
 - Branch ถูกต้อง
@@ -125,10 +154,13 @@ Incident หรือ bug สำคัญจะถือว่า `Closed` ไ�
 - Supabase migration version ถูกต้อง
 - Auth/RLS critical flow ผ่าน
 - Post-deploy smoke test ผ่าน
+- `/status` และ protected diagnostics แสดง release/environment ที่ถูกต้องโดยไม่เปิดเผย secret
 
-### 8.5 Performance targets for similar future projects
+### 9.5 Performance targets for similar future projects
 - ลดเวลา setup/deployment อย่างน้อย 50%
 - ลด failed deploy 50–70%
 - ลดเวลา Root-cause analysis 40–60%
 - ลด rework อย่างน้อย 50%
 - ลดการเกิดซ้ำของ known errors อย่างน้อย 80%
+
+ต้องเก็บ baseline และ actual result ใน `PROJECT_CONTEXT.md` ห้ามอ้างว่าเร็วขึ้นโดยไม่มีข้อมูล
