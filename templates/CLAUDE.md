@@ -6,15 +6,20 @@ Before planning, coding, modifying, testing, troubleshooting or deploying this p
 1. Read `champban/Engineering1` branch `Doc` → `project_context.md`.
 2. Read `champban/Engineering1` branch `Doc` → `skills/github-netlify-supabase-prevention/SKILL.md`.
 3. Read `champban/Engineering1` branch `Doc` → `skills/project-fast-safe-bootstrap/SKILL.md`.
-4. Read this repo root `PROJECT_CONTEXT.md`.
-5. Confirm repository, branch, environment, Supabase project and Netlify target.
-6. If any context cannot be retrieved or conflicts, stop and tell the user. Do not guess.
+4. Read `champban/Engineering1` branch `Doc` → `skills/progress-and-manual-assist/SKILL.md`.
+5. Read `champban/Engineering1` branch `Doc` → `skills/project-performance-kpi/SKILL.md`.
+6. Read `champban/Engineering1` branch `Doc` → `templates/AI_ASSET_REGISTRY.md`.
+7. Read this repo root `PROJECT_CONTEXT.md`.
+8. Confirm repository, branch, environment, Supabase project and Netlify target.
+9. Propose the Activation Set and ask whether additional project-specific agreements/assets should be activated.
+10. If any context cannot be retrieved or conflicts, stop and tell the user. Do not guess.
 
 ## Before implementation
 - Restate the understood requirement and acceptance criteria.
 - Identify exact files/layers affected.
 - State security/data/deployment impact.
 - State tests and rollback.
+- Start/update `docs/PROJECT_PERFORMANCE_KPI.md` for a new project, major feature or release.
 - Ask for confirmation when the requirement is ambiguous, destructive, security-sensitive, production-affecting or has materially different implementation options.
 
 ## Execution rules
@@ -22,10 +27,18 @@ Before planning, coding, modifying, testing, troubleshooting or deploying this p
 - One logical change per commit.
 - Root cause before patch.
 - No direct feature work on `main`.
-- Production requires quality gate, Deploy Preview, SHA verification and smoke test.
+- Production requires quality gate, Deploy Preview, SHA verification, 6D audit and smoke test.
 - RLS/database policies enforce permissions; UI hiding is not security.
-- Never commit secrets or expose service-role keys to client code.
-- Update `PROJECT_CONTEXT.md` for decisions, deploy mapping, known issues and prevention.
+- Never commit secrets or expose service-role/secret keys to client code.
+- Update `PROJECT_CONTEXT.md` for decisions, deploy mapping, known issues, KPI and prevention.
+
+## Mandatory pre-deploy 6D audit
+Before approving a Preview for Production promotion or deploying Production:
+1. Read `champban/Engineering1` branch `Doc` → `skills/webapp-security-6d-audit/SKILL.md`.
+2. Create/update `docs/SECURITY_6D_AUDIT.md` against the exact candidate commit SHA and environment.
+3. Audit all six dimensions: Identity/access, Secrets/data, Input/content safety, Browser/network, Supply chain/deployment, Operations/recovery.
+4. Record the audit summary and report link in `PROJECT_CONTEXT.md`.
+5. Stop Production if the decision is missing/`BLOCKED`, Critical findings are open, or High findings are neither fixed nor explicitly accepted under policy.
 
 ## Incident rule
 A bug is not closed with only a fix. Record:
@@ -43,6 +56,8 @@ A bug is not closed with only a fix. Record:
 - `templates/DEPLOYMENT_GATE_AUTOMATION.md`
 - `templates/DIAGNOSTIC_STATUS_PAGE_SPEC.md`
 - `templates/ROOT_CAUSE_AND_INCIDENT_WORKFLOW.md`
+- `templates/PRE_DEPLOY_PREVENTION_CHECKLIST.md`
+- `templates/PROJECT_PERFORMANCE_KPI_TEMPLATE.md`
 
 ## Stop conditions
 Stop and inform the user if:
@@ -52,3 +67,4 @@ Stop and inform the user if:
 - Commit SHA and deploy SHA differ.
 - RLS/security checks fail.
 - A destructive data change lacks backup/restore or forward-fix plan.
+- The mandatory 6D audit is missing, blocked or invalid for the candidate commit.
