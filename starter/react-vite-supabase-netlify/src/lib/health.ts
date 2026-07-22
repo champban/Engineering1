@@ -16,14 +16,10 @@ export async function getAppHealth(): Promise<AppHealth> {
   const checkedAt = new Date().toISOString();
 
   try {
-    const query = supabase
-      .from('app_health')
-      .select('status, server_time, migration_marker')
-      .eq('id', true)
-      .maybeSingle();
+    const query = supabase.rpc('get_app_health').single();
 
     const timeout = new Promise<never>((_, reject) => {
-      window.setTimeout(() => reject(new Error('Health check timed out')), HEALTH_TIMEOUT_MS);
+      globalThis.setTimeout(() => reject(new Error('Health check timed out')), HEALTH_TIMEOUT_MS);
     });
 
     const { data, error } = await Promise.race([query, timeout]);
