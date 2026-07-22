@@ -18,6 +18,14 @@ set
 alter table public.app_health enable row level security;
 
 revoke all on table public.app_health from anon, authenticated;
+grant select on table public.app_health to anon, authenticated;
+
+drop policy if exists "app_health_select" on public.app_health;
+create policy "app_health_select"
+on public.app_health
+for select
+to anon, authenticated
+using (id = true);
 
 drop function if exists public.get_app_health();
 create function public.get_app_health()
@@ -28,15 +36,16 @@ returns table (
 )
 language sql
 stable
-security definer
-set search_path = public
+security invoker
+set search_path = ''
 as $$
   select h.status, now(), h.migration_marker
   from public.app_health h
   where h.id = true;
 $$;
 
-revoke all on function public.get_app_health() from public;
+revoke execute on function public.get_app_health() from public;
+revoke execute on function public.get_app_health() from anon, authenticated;
 grant execute on function public.get_app_health() to anon, authenticated;
 
 commit;
