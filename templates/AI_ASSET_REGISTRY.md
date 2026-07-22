@@ -19,6 +19,7 @@ These are always activated automatically for application work:
 
 | Asset | Location | Purpose |
 |---|---|---|
+| Project start trigger skill | `skills/project-start-trigger/SKILL.md` | Converts `เริ่ม project` / `project start` and equivalent wording into automatic boot, Activation Set and Yes/No approval flow |
 | Global project context | `project_context.md` | Global source of truth, backup policy and boot sequence |
 | GitHub/Netlify/Supabase prevention skill | `skills/github-netlify-supabase-prevention/SKILL.md` | Evidence-first troubleshooting, deploy gates and recurrence prevention |
 | Fast and safe bootstrap skill | `skills/project-fast-safe-bootstrap/SKILL.md` | Reuse-first project setup and standardized execution workflow |
@@ -50,8 +51,8 @@ A missing or `BLOCKED` 6D audit is a Production stop condition.
 | Deployment Gate Automation | `templates/DEPLOYMENT_GATE_AUTOMATION.md` | Any CI/CD app | Automates lint, typecheck, test, build and release verification |
 | Diagnostic and Status Page Spec | `templates/DIAGNOSTIC_STATUS_PAGE_SPEC.md` | Any deployed app | Faster stale deploy, environment, Auth and Supabase diagnosis |
 | Root Cause and Incident Workflow | `templates/ROOT_CAUSE_AND_INCIDENT_WORKFLOW.md` | Bug, failed deploy or production incident | Prevents random patching and repeated errors |
-| Claude Operating Template | `templates/CLAUDE.md` | Project will be edited by Claude | Enforces boot sequence and stop conditions in Claude |
-| ChatGPT/Codex Operating Template | `templates/AGENTS.md` | Project will be edited by ChatGPT/Codex | Enforces boot sequence and stop conditions in ChatGPT/Codex |
+| Claude Operating Template | `templates/CLAUDE.md` | Project will be edited by Claude | Enforces project-start trigger, boot sequence and stop conditions in Claude |
+| ChatGPT/Codex Operating Template | `templates/AGENTS.md` | Project will be edited by ChatGPT/Codex | Enforces project-start trigger, boot sequence and stop conditions in ChatGPT/Codex |
 | React/Vite/Supabase/Netlify Starter Overlay | `starter/react-vite-supabase-netlify/` | Accepted stack matches | Provides proven config, CI, env validation, status/diagnostics and health check |
 
 ## Project-specific assets to discover proactively
@@ -77,6 +78,7 @@ Present this before implementation:
 ## Proposed Activation Set
 
 ### Automatically activated
+- Project start trigger skill
 - Global project context
 - Prevention skill
 - Fast-safe bootstrap skill
@@ -154,11 +156,11 @@ For long or multi-step work:
 - Add repeated manual actions to automation backlog or a reusable checklist.
 
 ## Activation confirmation rule
-Ask before coding a new application:
+When the project-start trigger is detected, ask after automatic discovery and Activation Set preparation:
 
-> I have loaded the mandatory project rules. The recommended Activation Set for this project is: [list]. Do you want to add any specific agreement, skill, starter, design standard, prior project learning or document before I finalize the implementation plan?
+> ยืนยันให้เริ่มตาม Activation Set นี้หรือไม่? Yes / No
 
-If the user is unsure, recommend the safest minimal set. Do not ask them to diagnose technical details.
+Do not ask whether mandatory files should be read. If the user is unsure, recommend the safest minimal set. Do not ask them to diagnose technical details.
 
 ## Registry maintenance
 Whenever a reusable skill, template, starter, checklist or standard is created, renamed or deprecated:
