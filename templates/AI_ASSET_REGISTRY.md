@@ -22,6 +22,7 @@ These are always activated automatically for application work:
 | Global project context | `project_context.md` | Global source of truth, backup policy and boot sequence |
 | GitHub/Netlify/Supabase prevention skill | `skills/github-netlify-supabase-prevention/SKILL.md` | Evidence-first troubleshooting, deploy gates and recurrence prevention |
 | Fast and safe bootstrap skill | `skills/project-fast-safe-bootstrap/SKILL.md` | Reuse-first project setup and standardized execution workflow |
+| Progress and manual assist skill | `skills/progress-and-manual-assist/SKILL.md` | Percentage progress updates and exact user-side acceleration steps |
 | AI asset registry | `templates/AI_ASSET_REGISTRY.md` | Inventory and activation rules |
 | Target project context | Target repo root `PROJECT_CONTEXT.md` | Project-specific architecture, decisions, status, incidents and deploy mapping |
 
@@ -68,6 +69,7 @@ Present this before implementation:
 - Global project context
 - Prevention skill
 - Fast-safe bootstrap skill
+- Progress and manual assist skill
 - AI asset registry
 - Target PROJECT_CONTEXT.md (when repo exists)
 
@@ -121,6 +123,15 @@ Activate:
 - Project design system/UI specification
 - Relevant acceptance criteria
 - Still use Preview and production build when deployable code changes
+
+## Progress and user-action protocol
+For long or multi-step work:
+- Report progress after meaningful milestones as an integer percentage.
+- State completed work, remaining work, user action and blockers.
+- Identify any step the user can perform faster or that requires user-controlled access.
+- Provide exact numbered manual steps, expected result and minimum non-secret evidence to return.
+- Do not delegate work that AI can safely complete through available tools.
+- Add repeated manual actions to automation backlog or a reusable checklist.
 
 ## Activation confirmation rule
 Ask before coding a new application:
