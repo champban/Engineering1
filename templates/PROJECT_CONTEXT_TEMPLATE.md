@@ -24,8 +24,16 @@
 Before any application change, read:
 1. `champban/Engineering1` branch `Doc` → `project_context.md`
 2. `champban/Engineering1` branch `Doc` → `skills/github-netlify-supabase-prevention/SKILL.md`
+3. `champban/Engineering1` branch `Doc` → `skills/project-fast-safe-bootstrap/SKILL.md`
+4. `champban/Engineering1` branch `Doc` → `skills/progress-and-manual-assist/SKILL.md`
+5. `champban/Engineering1` branch `Doc` → `skills/project-performance-kpi/SKILL.md`
+6. `champban/Engineering1` branch `Doc` → `templates/AI_ASSET_REGISTRY.md`
 
-If either file cannot be retrieved, stop and inform the user. Do not guess.
+Before Production deployment, also read and execute:
+7. `champban/Engineering1` branch `Doc` → `skills/webapp-security-6d-audit/SKILL.md`
+8. `champban/Engineering1` branch `Doc` → `templates/PRE_DEPLOY_PREVENTION_CHECKLIST.md`
+
+If a required file cannot be retrieved, stop and inform the user. Do not guess.
 
 ## 4. Roles and Permission Matrix
 | Resource/Action | Admin | Owner | Member | Invited | Unauthorized |
@@ -77,9 +85,9 @@ Never place secret values in this document.
 ## 10. Deploy Discipline
 Mandatory workflow:
 
-`Read context → Define acceptance criteria → Reproduce → Classify → Collect evidence → Isolate root cause → Backup/rollback point → Small fix → Local production build → Test → Commit → Push → Deploy Preview → Verify SHA → Production deploy → Smoke test → Record prevention`
+`Read context → Activation Set → User confirmation → Acceptance criteria → KPI timing → Reproduce/Classify → Evidence → Root cause → Backup/rollback → Small fix → Build/Test → Commit/Push → Deploy Preview → Verify SHA → 6D Audit → Production deploy → Smoke test → Prevention/KPI update`
 
-Production deployment is prohibited until all required gates in the prevention skill pass.
+Production deployment is prohibited until all required gates in the prevention skill and 6D audit pass.
 
 ## 11. Test Matrix
 | Test ID | Role | Scenario | Expected result | Automated/manual | Last result |
@@ -129,3 +137,34 @@ Closure criteria:
 ## 17. Lessons Learned
 | Date | Learning | Standardized action | Reusable in future projects? |
 |---|---|---|---|
+
+## 18. Project Performance KPI
+Required file: `docs/PROJECT_PERFORMANCE_KPI.md`
+
+- Comparable baseline:
+- Comparison class: Directly comparable / Partially comparable / Not comparable
+- M0 start timestamp:
+- M4 RC/Quality Gate target:
+- M6 Production Verified target:
+- Current highest verified milestone:
+- Actual elapsed time:
+- Failed deploy count:
+- Rework cycles:
+- Known-error recurrence count:
+- Prevention closure rate:
+
+Do not claim an improvement percentage without equivalent milestones, timestamps and scope classification.
+
+## 19. Web App Security 6D Audit Register
+Required report: `docs/SECURITY_6D_AUDIT.md`
+
+| Audit date | Commit SHA | Environment | Identity & access | Secrets & data | Input safety | Browser/network | Supply chain/deploy | Operations/recovery | Decision | Report |
+|---|---|---|---|---|---|---|---|---|---|---|
+
+Allowed dimension status: `Not started`, `In progress`, `Pass`, `Conditional`, `Blocked`.
+
+Deployment rules:
+- Production requires `PASS` or an allowed `CONDITIONAL PASS`.
+- Critical findings block deployment.
+- High findings block deployment unless fixed or explicitly accepted under the 6D policy with owner and expiry.
+- Any material change affecting an audited dimension requires targeted re-audit.
