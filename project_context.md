@@ -71,14 +71,15 @@ Settings → Apps → เปิด Developer Mode → เพิ่ม custom con
 1. อ่านไฟล์นี้จาก `champban/Engineering1` branch `Doc`
 2. อ่าน `skills/github-netlify-supabase-prevention/SKILL.md`
 3. อ่าน `skills/project-fast-safe-bootstrap/SKILL.md`
-4. อ่าน `templates/AI_ASSET_REGISTRY.md`
-5. อ่าน `PROJECT_CONTEXT.md` ที่ root ของ repo โปรเจกต์นั้น เมื่อ repo มีอยู่แล้ว
-6. ยืนยัน Repository, working branch, production branch, Environment, Supabase project และ Netlify deploy target
-7. ตรวจหา project-specific documents, skills, starter, design rules, data model, security rules, prior-project learning และ reusable modules ที่เกี่ยวข้อง
-8. เสนอ **Activation Set** ให้ผู้ใช้ โดยแสดงว่าอะไรถูก activate อัตโนมัติและอะไรแนะนำให้เพิ่ม
-9. ถามผู้ใช้ก่อนเริ่มสร้าง application ใหม่ว่า ต้องการให้ AI อ่าน/activate ข้อตกลง, skill, starter overlay, template หรือเอกสารเฉพาะเพิ่มเติมหรือไม่
-10. รอผู้ใช้ยืนยัน Activation Set ก่อนเขียน code สำหรับโปรเจกต์ใหม่หรือ architectural change สำคัญ
-11. หากดึงไฟล์ ยืนยัน context หรือหาความขัดแย้งไม่ได้ ให้แจ้งผู้ใช้และหยุด ห้ามเดา
+4. อ่าน `skills/progress-and-manual-assist/SKILL.md`
+5. อ่าน `templates/AI_ASSET_REGISTRY.md`
+6. อ่าน `PROJECT_CONTEXT.md` ที่ root ของ repo โปรเจกต์นั้น เมื่อ repo มีอยู่แล้ว
+7. ยืนยัน Repository, working branch, production branch, Environment, Supabase project และ Netlify deploy target
+8. ตรวจหา project-specific documents, skills, starter, design rules, data model, security rules, prior-project learning และ reusable modules ที่เกี่ยวข้อง
+9. เสนอ **Activation Set** ให้ผู้ใช้ โดยแสดงว่าอะไรถูก activate อัตโนมัติและอะไรแนะนำให้เพิ่ม
+10. ถามผู้ใช้ก่อนเริ่มสร้าง application ใหม่ว่า ต้องการให้ AI อ่าน/activate ข้อตกลง, skill, starter overlay, template หรือเอกสารเฉพาะเพิ่มเติมหรือไม่
+11. รอผู้ใช้ยืนยัน Activation Set ก่อนเขียน code สำหรับโปรเจกต์ใหม่หรือ architectural change สำคัญ
+12. หากดึงไฟล์ ยืนยัน context หรือหาความขัดแย้งไม่ได้ ให้แจ้งผู้ใช้และหยุด ห้ามเดา
 
 ### Proactive rule
 - ห้ามรอให้ผู้ใช้จำชื่อไฟล์หรือสั่งเอง
@@ -107,6 +108,7 @@ Source of truth ฉบับเต็มอยู่ที่ `templates/AI_ASSE
 Assets ที่พร้อมใช้ปัจจุบัน:
 - `skills/github-netlify-supabase-prevention/SKILL.md`
 - `skills/project-fast-safe-bootstrap/SKILL.md`
+- `skills/progress-and-manual-assist/SKILL.md`
 - `templates/PROJECT_CONTEXT_TEMPLATE.md`
 - `templates/PRE_DEPLOY_PREVENTION_CHECKLIST.md`
 - `templates/PROJECT_STARTER_MANIFEST.md`
@@ -164,3 +166,14 @@ Incident หรือ bug สำคัญจะถือว่า `Closed` ไ�
 - ลดการเกิดซ้ำของ known errors อย่างน้อย 80%
 
 ต้องเก็บ baseline และ actual result ใน `PROJECT_CONTEXT.md` ห้ามอ้างว่าเร็วขึ้นโดยไม่มีข้อมูล
+
+### 9.6 Progress reporting and manual acceleration
+สำหรับงานหลายขั้นตอน งานที่ต้องใช้หลาย tools งาน deploy/troubleshoot หรือใช้เวลานาน:
+- ต้องรายงานความคืบหน้าเป็นเปอร์เซ็นต์หลัง milestone สำคัญ โดยใช้ค่า 0–100%
+- Progress update ต้องระบุ Completed, Remaining, User action และ Blocker
+- ห้ามรายงาน 100% จนกว่า verification และ documentation ที่จำเป็นจะเสร็จ
+- ทุก stage ต้องประเมินว่ามีขั้นตอนใดที่ผู้ใช้ทำ manual ได้เร็วกว่า หรือเป็นขั้นตอนที่ AI ทำไม่ได้ เช่น OAuth approval, secret entry, restricted UI, local verification หรือ production account check
+- หากผู้ใช้ทำได้เร็วกว่า ให้สั่งทันทีเป็น numbered steps พร้อม expected result และหลักฐานที่ต้องส่งกลับ
+- ห้ามให้ผู้ใช้ส่ง password, token, service-role key, secret หรือข้อมูลลูกค้าที่ sensitive เข้ามาใน chat
+- ห้ามโยนงานให้ผู้ใช้ถ้า AI ทำเองได้อย่างปลอดภัยผ่าน connector/tool
+- Manual step ที่เกิดซ้ำต้องถูกเปลี่ยนเป็น automation backlog, reusable checklist หรือ documented unavoidable control
