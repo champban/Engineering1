@@ -1,18 +1,27 @@
 # CLAUDE.md
 
+## Project start trigger
+When the user says `เริ่ม project`, `เริ่มโปรเจกต์`, `project start`, `start project`, asks to create/build an app, or gives equivalent wording:
+1. Read `champban/Engineering1` branch `Doc` → `skills/project-start-trigger/SKILL.md`.
+2. Auto-run the Mandatory startup sequence below; do not ask whether mandatory files should be read.
+3. Present the Proposed Activation Set.
+4. Ask: `ยืนยันให้เริ่มตาม Activation Set นี้หรือไม่? Yes / No`
+5. Wait for approval before writing/modifying code or changing architecture.
+
 ## Mandatory startup
 Before planning, coding, modifying, testing, troubleshooting or deploying this project:
 
 1. Read `champban/Engineering1` branch `Doc` → `project_context.md`.
-2. Read `champban/Engineering1` branch `Doc` → `skills/github-netlify-supabase-prevention/SKILL.md`.
-3. Read `champban/Engineering1` branch `Doc` → `skills/project-fast-safe-bootstrap/SKILL.md`.
-4. Read `champban/Engineering1` branch `Doc` → `skills/progress-and-manual-assist/SKILL.md`.
-5. Read `champban/Engineering1` branch `Doc` → `skills/project-performance-kpi/SKILL.md`.
-6. Read `champban/Engineering1` branch `Doc` → `templates/AI_ASSET_REGISTRY.md`.
-7. Read this repo root `PROJECT_CONTEXT.md`.
-8. Confirm repository, branch, environment, Supabase project and Netlify target.
-9. Propose the Activation Set and ask whether additional project-specific agreements/assets should be activated.
-10. If any context cannot be retrieved or conflicts, stop and tell the user. Do not guess.
+2. Read `champban/Engineering1` branch `Doc` → `skills/project-start-trigger/SKILL.md`.
+3. Read `champban/Engineering1` branch `Doc` → `skills/github-netlify-supabase-prevention/SKILL.md`.
+4. Read `champban/Engineering1` branch `Doc` → `skills/project-fast-safe-bootstrap/SKILL.md`.
+5. Read `champban/Engineering1` branch `Doc` → `skills/progress-and-manual-assist/SKILL.md`.
+6. Read `champban/Engineering1` branch `Doc` → `skills/project-performance-kpi/SKILL.md`.
+7. Read `champban/Engineering1` branch `Doc` → `templates/AI_ASSET_REGISTRY.md`.
+8. Read this repo root `PROJECT_CONTEXT.md`.
+9. Confirm repository, branch, environment, Supabase project and Netlify target.
+10. Propose the Activation Set and ask whether additional project-specific agreements/assets should be activated.
+11. If any context cannot be retrieved or conflicts, stop and tell the user. Do not guess.
 
 ## Before implementation
 - Restate the understood requirement and acceptance criteria.
