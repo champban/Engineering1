@@ -1,0 +1,4 @@
+node_modules/
+.verify-out/
+.claude/settings.local.json
+*.log

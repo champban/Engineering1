@@ -1,0 +1,12 @@
+{
+  "name": "weekly-project-plan-dashboard",
+  "private": true,
+  "description": "Offline, single-file dashboard for Weekly_Project_Plan.xlsx. The dashboard itself has no dependencies; playwright is only used by the test suite.",
+  "scripts": {
+    "verify": "node tests/verify.mjs && python3 tests/check_exported.py",
+    "embed": "python3 tools/xlsx_to_json.py"
+  },
+  "devDependencies": {
+    "playwright": "^1.62.0"
+  }
+}
