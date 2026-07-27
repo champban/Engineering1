@@ -9,6 +9,7 @@ Run tests/verify.mjs first; it writes .verify-out/exported.xlsx.
 """
 from __future__ import annotations
 
+import json
 import sys
 import zipfile
 from pathlib import Path
@@ -78,14 +79,17 @@ def main() -> int:
         e_widths = {k: v.width for k, v in e.column_dimensions.items()}
         check(f"{name}: column widths preserved", o_widths == e_widths)
 
-    # The edits verify.mjs makes, re-read through a completely independent parser.
+    # The edits verify.mjs actually made, re-read through an independent parser.
+    edits_file = EXPORTED.parent / "edits.json"
+    if not edits_file.exists():
+        print(f"  edits.json not found next to {EXPORTED.name}. Run:  node tests/verify.mjs")
+        return 2
     expected = {
-        ("Weekly Plan (From Week29)", "E5"): "UI EDIT — verified",
-        ("Weekly Plan (From Week29)", "B5"): "NEW CELL — was empty",
-        ("Weekly Plan (From Week29)", "I5"): "REMARK EDIT — verified",
-        ("Readiness Check", "E3"): "monitoring",
-        ("Week35&36", "D16"): "DAILY EDIT — verified",
+        (e["sheet"], e["ref"]): e["value"]
+        for e in json.loads(edits_file.read_text(encoding="utf-8"))
     }
+    check("edit list handed over by verify.mjs", bool(expected), "empty edit list")
+
     for (sheet, ref), want in expected.items():
         got = exported[sheet][ref].value
         check(f"edit landed in {sheet}!{ref}", got == want, f"expected {want!r}, got {got!r}")

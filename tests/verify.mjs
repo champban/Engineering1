@@ -13,7 +13,7 @@
 import { chromium } from 'playwright';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, join } from 'node:path';
-import { mkdirSync, rmSync, existsSync } from 'node:fs';
+import { mkdirSync, rmSync, existsSync, writeFileSync } from 'node:fs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repo = dirname(here);
@@ -175,8 +175,61 @@ const edits = await page.evaluate(() => {
   for (const e of out) applyPatch(e.sheet, e.ref, e.value);
   return out;
 });
-const allEdits = [{ sheet: uiTarget.sheet, ref: uiTarget.ref, value: 'UI EDIT — verified' }, ...edits];
+const allEdits = [{ sheet: uiTarget.sheet, ref: uiTarget.ref, value: 'UI EDIT — verified' }, ...edits.map(e => ({ sheet: e.sheet, ref: e.ref, value: e.value }))];
 check('5 patches recorded across 3 sheets', await page.evaluate(() => state.patches.size) === 5);
+
+section('4b. Every day box is directly typeable');
+
+// An EMPTY box in the weekly grid accepts typing (add).
+await page.click('.tab[data-tab="weekly"]');
+await page.waitForTimeout(150);
+const emptyBox = await page.evaluate(() => {
+  const ld = state.model.lineDays.find(x => x.cell.state === 'none' && !state.patches.has(x.sheet + '!' + x.cell.ref));
+  return { sheet: ld.sheet, ref: ld.cell.ref };
+});
+const emptySel = `#view-weekly [data-edit][data-ref="${emptyBox.ref}"]`;
+check('empty day boxes are clickable targets', await page.locator(emptySel).count() > 0);
+await page.click(emptySel);
+await page.waitForSelector('#view-weekly textarea.editor');
+await page.fill('#view-weekly textarea.editor', 'ADDED IN EMPTY BOX');
+await page.keyboard.press('Control+Enter');
+await page.waitForFunction(r => {
+  const c = state.book.sheets[r.sheet].cells[r.ref];
+  return c && c.v === 'ADDED IN EMPTY BOX';
+}, emptyBox);
+check('typing into an empty day box adds the entry', true);
+
+// Clearing a box deletes the entry.
+await page.click(`#view-weekly [data-edit][data-ref="${emptyBox.ref}"]`);
+await page.waitForSelector('#view-weekly textarea.editor');
+await page.fill('#view-weekly textarea.editor', '');
+await page.keyboard.press('Control+Enter');
+await page.waitForFunction(r => !state.book.sheets[r.sheet].cells[r.ref], emptyBox);
+check('clearing a day box deletes the entry', await page.evaluate(() => state.patches.size) === 5);
+
+// A timeline box opens an editor that writes through.
+await page.click('.tab[data-tab="timeline"]');
+await page.waitForTimeout(150);
+const timelineTarget = await page.evaluate(() => {
+  const ld = state.model.lineDays.find(x => x.cell.state === 'none' && !state.patches.has(x.sheet + '!' + x.cell.ref));
+  return { line: ld.line, ref: ld.cell.ref, sheet: ld.sheet };
+});
+await page.click(`#view-timeline .gcell[data-detail-ref="${timelineTarget.ref}"][data-detail-line="${timelineTarget.line}"]`);
+await page.waitForSelector('#drawer.open .drawer-edit');
+await page.click('#drawer .drawer-edit');
+await page.waitForSelector('#drawer textarea.editor');
+await page.fill('#drawer textarea.editor', 'TIMELINE BOX EDIT');
+await page.keyboard.press('Control+Enter');
+await page.waitForFunction(t => {
+  const c = state.book.sheets[t.sheet].cells[t.ref];
+  return c && c.v === 'TIMELINE BOX EDIT';
+}, timelineTarget);
+check('timeline day boxes are editable in place', true);
+const drawerFresh = await page.evaluate(() => document.querySelector('#drawer .drawer-edit').textContent.trim());
+check('the detail panel refreshes after an edit', drawerFresh === 'TIMELINE BOX EDIT', drawerFresh);
+await page.click('#drawer-close');
+allEdits.push({ sheet: timelineTarget.sheet, ref: timelineTarget.ref, value: 'TIMELINE BOX EDIT' });
+check('6 patches after the timeline edit', await page.evaluate(() => state.patches.size) === 6);
 
 const [download] = await Promise.all([
   page.waitForEvent('download'),
@@ -185,6 +238,8 @@ const [download] = await Promise.all([
 const exported = join(OUT, 'exported.xlsx');
 await download.saveAs(exported);
 check('Export Excel produced a file', existsSync(exported));
+// Hand the exact edit list to check_exported.py so the two suites cannot drift.
+writeFileSync(join(OUT, 'edits.json'), JSON.stringify(allEdits, null, 2));
 
 await page.goto(INDEX);
 await page.waitForFunction(() => typeof state !== 'undefined' && state.model);

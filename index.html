@@ -196,7 +196,9 @@ table.gantt td.cell { padding: 0; height: 30px; }
   color: var(--ink); font-size: 12px; font-weight: 700; line-height: 1;
 }
 .gcell:hover { outline: 2px solid var(--accent); outline-offset: -2px; }
-.gcell.none { background: transparent; border-left-color: transparent; cursor: default; }
+.gcell.none { background: transparent; border-left-color: transparent; color: var(--muted); }
+.gcell.none::after { content: "+"; opacity: 0; font-size: 13px; }
+.gcell.none:hover::after { opacity: .8; }
 td.weekend .gcell.none { background: color-mix(in srgb, var(--grid) 40%, transparent); }
 td.holiday { background: repeating-linear-gradient(45deg, transparent, transparent 4px, var(--grid) 4px, var(--grid) 5px); }
 .gcell .ms { color: var(--st-comm); }
@@ -250,8 +252,21 @@ tr.weekend-row > td:first-child { color: var(--muted); }
 .editable.changed { background: color-mix(in srgb, var(--st-comm) 18%, transparent); }
 td.changed-mark { position: relative; }
 .gcell.changed { box-shadow: inset 0 0 0 2px var(--st-comm); }
-.editor { width: 100%; min-height: 76px; padding: 6px 8px; border: 1px solid var(--accent); border-radius: 6px; background: var(--raised); resize: vertical; }
+.editor { width: 100%; min-width: 190px; min-height: 84px; padding: 6px 8px; border: 1px solid var(--accent); border-radius: 6px; background: var(--raised); resize: vertical; }
 .editor-hint { font-size: 11px; color: var(--muted); margin-top: 4px; }
+/* An empty day box still has to be an obvious, clickable target. */
+td.act.editable { min-width: 150px; height: 46px; }
+td.act.editable:empty::after, td.remark.editable:empty::after {
+  content: "+ add"; color: var(--muted); font-size: 11px; opacity: 0;
+}
+td.act.editable:empty:hover::after, td.remark.editable:empty:hover::after { opacity: 1; }
+.hint { font-size: 12px; color: var(--muted); margin-bottom: 10px; }
+.drawer-edit {
+  border: 1px dashed var(--border); border-radius: 8px; padding: 8px 10px;
+  white-space: pre-wrap; min-height: 44px; background: var(--plane);
+}
+.drawer-edit:empty::after { content: "+ click to add"; color: var(--muted); font-size: 12px; }
+.drawer-lbl { margin: 14px 0 6px; font-size: 12px; color: var(--muted); }
 
 /* detail drawer */
 .drawer {
@@ -1015,6 +1030,7 @@ const state = {
   generated: '',
   patches: new Map(),
   view: 'overview',
+  drawer: null,
   filters: { weekFrom: null, weekTo: null, lines: new Set(), states: new Set(), q: '' },
 };
 
@@ -1175,7 +1191,15 @@ function renderTimeline() {
         const hidden = cell && cell.state !== 'none'
           && ((stateFilter.size && !stateFilter.has(cell.state)) || (q && !matchesQuery(cell.text, q)));
         if (!cell || cell.state === 'none' || hidden) {
-          return `<td class="cell ${d.weekend ? 'weekend' : ''} ${d.holiday ? 'holiday' : ''}"><span class="gcell none"></span></td>`;
+          const empty = `${name} · ${d.weekday} ${d.iso} — `
+            + (cell && cell.text ? 'hidden by the current filter; click to view or edit' : 'click to add an activity');
+          return `<td class="cell ${d.weekend ? 'weekend' : ''} ${d.holiday ? 'holiday' : ''}">`
+            + (cell
+              ? `<button type="button" class="gcell none${isPatched(w.sheet, cell.ref) ? ' changed' : ''}" `
+                + `data-detail-line="${esc(name)}" data-detail-ref="${esc(cell.ref)}" `
+                + `title="${esc(empty)}" aria-label="${esc(empty)}"></button>`
+              : '<span class="gcell none"></span>')
+            + '</td>';
         }
         const s = STATES[cell.state];
         const title = `${name} · ${d.weekday} ${d.iso} · ${s.label}\n${cell.text}`;
@@ -1190,7 +1214,8 @@ function renderTimeline() {
   }).join('');
 
   return printHead('Timeline')
-    + `<div class="panel"><header><h2>Line timeline</h2><span class="sub">${weeks.length} weeks · click a cell for detail</span></header>
+    + `<div class="panel"><header><h2>Line timeline</h2><span class="sub">${weeks.length} weeks</span></header>
+       <div class="hint">Click any day box — filled or empty — to add, edit or clear that day.</div>
        <div style="margin-bottom:10px">${legendHtml()}</div>
        <div class="gantt-scroll"><table class="gantt">
          <thead><tr class="weeks"><th class="rowhead">Production area</th>${weekHead}</tr>
@@ -1232,7 +1257,8 @@ function renderWeekly() {
   }).join('');
 
   return printHead('Weekly grid')
-    + `<div class="panel"><header><h2>Weekly plan</h2><span class="sub">click any cell to edit</span></header>
+    + `<div class="panel"><header><h2>Weekly plan</h2></header>
+       <div class="hint">Click any day box — filled or empty — to type directly. Clearing the box deletes that day's entry.</div>
        <div style="margin-bottom:10px">${legendHtml()}</div>
        ${blocks || '<div class="empty">Nothing matches the current filters.</div>'}</div>`;
 }
@@ -1462,6 +1488,7 @@ function render() {
   const badge = $('#change-badge');
   badge.hidden = state.patches.size === 0;
   badge.textContent = String(state.patches.size);
+  refreshDrawer();
 }
 
 /* =====================================================================
@@ -1866,8 +1893,35 @@ function openDrawer(title, html) {
   $('#drawer').setAttribute('aria-hidden', 'false');
 }
 function closeDrawer() {
+  state.drawer = null;
   $('#drawer').classList.remove('open');
   $('#drawer').setAttribute('aria-hidden', 'true');
+}
+
+/** Detail panel for one line-day. Both boxes are editable in place, and the
+ *  panel re-renders after an edit so it never shows stale text. */
+function openLineDayDrawer(lineName, ref) {
+  const ld = state.model.lineDays.find(x => x.cell.ref === ref && x.line === lineName);
+  if (!ld) { closeDrawer(); return; }
+  state.drawer = { lineName, ref };
+  openDrawer(`${ld.line} · ${fmtDate(ld.day.iso)}`,
+    `<dl>
+       <dt>Week</dt><dd>${esc(ld.weekLabel)}</dd>
+       <dt>Date</dt><dd>${esc(ld.day.iso)} (${esc(ld.day.weekday)})${ld.day.holiday ? ' · holiday' : ''}</dd>
+       ${ld.cell.state !== 'none' ? `<dt>Status</dt><dd>${stateLabel(ld.cell.state)}${ld.cell.milestone ? ` <span class="tag ms">${MILESTONE_ICON} milestone</span>` : ''}</dd>` : ''}
+       <dt>Cell</dt><dd>${esc(ld.sheet)} · ${esc(ld.cell.ref)}</dd>
+       ${ld.cell.tags.length || ld.cell.vendors.length ? `<dt>Tags</dt><dd>${tagsHtml(ld.cell)}</dd>` : ''}
+     </dl>
+     <p class="drawer-lbl">Activity — click to type; clear the box to delete</p>
+     <div class="drawer-edit editable${isPatched(ld.sheet, ld.cell.ref) ? ' changed' : ''}" ${editAttrs(ld.sheet, ld.cell.ref)}>${esc(ld.cell.text)}</div>
+     <p class="drawer-lbl">Remark — ${esc(ld.line)}, ${esc(ld.weekLabel)}</p>
+     <div class="drawer-edit editable${isPatched(ld.sheet, ld.remark.ref) ? ' changed' : ''}" ${editAttrs(ld.sheet, ld.remark.ref)}>${esc(ld.remark.text)}</div>`);
+}
+
+function refreshDrawer() {
+  if (state.drawer && $('#drawer').classList.contains('open')) {
+    openLineDayDrawer(state.drawer.lineName, state.drawer.ref);
+  }
 }
 
 const THEME_KEY = 'weekly-project-plan.theme';
@@ -2062,25 +2116,16 @@ function wire() {
 
     const gcell = e.target.closest('[data-detail-ref]');
     if (gcell) {
-      const ref = gcell.dataset.detailRef, lineName = gcell.dataset.detailLine;
-      const ld = state.model.lineDays.find(x => x.cell.ref === ref && x.line === lineName);
-      if (ld) {
-        const s = STATES[ld.cell.state];
-        openDrawer(`${ld.line} · ${fmtDate(ld.day.iso)}`,
-          `<dl>
-            <dt>Week</dt><dd>${esc(ld.weekLabel)}</dd>
-            <dt>Date</dt><dd>${esc(ld.day.iso)} (${esc(ld.day.weekday)})${ld.day.holiday ? ' · holiday' : ''}</dd>
-            <dt>Status</dt><dd>${stateLabel(ld.cell.state)}${ld.cell.milestone ? ` <span class="tag ms">${MILESTONE_ICON} milestone</span>` : ''}</dd>
-            <dt>Cell</dt><dd>${esc(ld.sheet)} · ${esc(ld.cell.ref)}</dd>
-            <dt>Activity</dt><dd>${esc(ld.cell.text)}</dd>
-            ${ld.cell.tags.length || ld.cell.vendors.length ? `<dt>Tags</dt><dd>${tagsHtml(ld.cell)}</dd>` : ''}
-            ${ld.remark.text ? `<dt>Remark</dt><dd>${esc(ld.remark.text)}</dd>` : ''}
-          </dl>
-          <p style="margin-top:14px"><button class="btn" data-edit="text" data-sheet="${esc(ld.sheet)}" data-ref="${esc(ld.cell.ref)}">Edit this cell</button></p>`);
-      }
+      openLineDayDrawer(gcell.dataset.detailLine, gcell.dataset.detailRef);
       return;
     }
 
+    const editable = e.target.closest('[data-edit]');
+    if (editable && !e.target.closest('textarea')) beginEdit(editable);
+  });
+
+  // The drawer lives outside <main>, so it needs its own delegation.
+  $('#drawer').addEventListener('click', e => {
     const editable = e.target.closest('[data-edit]');
     if (editable && !e.target.closest('textarea')) beginEdit(editable);
   });

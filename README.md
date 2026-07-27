@@ -72,8 +72,15 @@ The nav bar, filters and buttons are all hidden in print.
 
 ## Editing and exporting back to Excel
 
-1. Click any activity cell, remark, readiness status or daily-schedule field. It becomes a text
-   box — `Ctrl`+`Enter` saves, `Esc` cancels.
+1. **Click any day box and type straight into it.** This works everywhere:
+   - **Weekly grid** — every day box, including empty ones (hover shows a `+ add` hint)
+   - **Timeline** — clicking a box, filled or empty, opens a side panel with the activity and
+     the week's remark, both editable in place
+   - **Line view**, **Daily schedule**, **Readiness** — activity, time, system, owner, output
+     and status are all editable
+
+   The box turns into a text area: `Ctrl`+`Enter` saves, `Esc` cancels.
+   **Clearing a box and saving deletes that entry** from the workbook.
 2. Edited cells are highlighted, and the **Changes** tab lists every edit as
    `sheet · cell · before → after`, with per-row undo and a discard-all button.
 3. Press **Export Excel**. You get `Weekly_Project_Plan_<date>.xlsx` in your Downloads folder.
@@ -138,6 +145,8 @@ open it — and checks that:
 - known facts from the workbook survive parsing (44 week blocks W29/2026 → W20/2027,
   6 production areas, the Cavanna and Metler Toledo entries, the readiness statuses)
 - all eight tabs render with **zero console errors and zero network requests**
+- every day box is typeable — adding into an empty box, clearing a box to delete, and editing a
+  timeline box through the detail panel all write through
 - an edit → *Export Excel* → re-load round-trip reproduces every edit and changes nothing else
 - the print rules hold: nav hidden, headers repeat, one page per production line
 
