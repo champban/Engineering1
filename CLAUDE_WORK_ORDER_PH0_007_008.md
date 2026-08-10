@@ -18,7 +18,7 @@ This work order does not implement the 3D editor, animation, simulation, file pe
 
 Claude must read these files in full before changing code:
 
-1. `PROJECT_CONTEXT.md`
+1. `ENGINEERING1_PLATFORM_CONTEXT.md`
 2. `PROJECT_MASTER_PLAN.md`
 3. `AI_TASK_BOARD.md`
 4. `CORE_OBJECT_SCHEMA_V1.md`

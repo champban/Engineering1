@@ -1,4 +1,4 @@
-# PROJECT_CONTEXT.md
+# ENGINEERING1_PLATFORM_CONTEXT.md
 
 Last updated: 2026-07-21
 Repository: `champban/Engineering1`

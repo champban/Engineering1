@@ -44,7 +44,7 @@ ChatGPT owns:
 - Acceptance criteria and test plans.
 - Review of Claude output, cross-module integration, risk control, and release decisions.
 - Progress calculation and status reports.
-- Updating `PROJECT_CONTEXT.md`, task handoffs, decisions, risks, and backlog.
+- Updating `ENGINEERING1_PLATFORM_CONTEXT.md`, task handoffs, decisions, risks, and backlog.
 - Producing milestone download packages when required.
 
 ### Claude Pro — Implementation Engineer
@@ -61,7 +61,7 @@ Claude must not independently change architecture, schemas, coordinate conventio
 
 ## 3. Working method
 
-1. ChatGPT reads `PROJECT_CONTEXT.md` before project changes.
+1. ChatGPT reads `ENGINEERING1_PLATFORM_CONTEXT.md` before project changes.
 2. ChatGPT defines one bounded task with acceptance criteria.
 3. Claude changes only the allowed files on a feature branch.
 4. Claude runs tests and records results.
