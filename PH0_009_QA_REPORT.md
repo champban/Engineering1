@@ -15,7 +15,7 @@ Merged to `main`: No
 
 PH0-009 reviewed PH0-007 and PH0-008 against:
 
-- `PROJECT_CONTEXT.md`
+- `ENGINEERING1_PLATFORM_CONTEXT.md`
 - `PROJECT_MASTER_PLAN.md`
 - `CORE_OBJECT_SCHEMA_V1.md`
 - `PRODUCT_ORIENTATION_SCHEMA_V1.md`
@@ -190,7 +190,7 @@ These remain planned for later tasks and are not PH0-009 failures.
 
 ## 7. Process deviations found
 
-1. `PROJECT_CONTEXT.md` was missing when the Claude work order was executed, although the work order instructed Claude to stop if it could not be read. ChatGPT reconstructed and committed the authoritative context on `Doc` before continuing QA.
+1. `ENGINEERING1_PLATFORM_CONTEXT.md` (then named `PROJECT_CONTEXT.md`) was missing when the Claude work order was executed, although the work order instructed Claude to stop if it could not be read. ChatGPT reconstructed and committed the authoritative context on `Doc` before continuing QA.
 2. The work order referred to `DYNAMIC_ENGINEERING_RELATIONSHIP_SCHEMA_V1.md`, while the committed approved filename is `DYNAMIC_RELATIONSHIP_SCHEMA_V1.md`. Future handoffs must use the actual repository filename.
 
 Neither deviation changed the approved schema content, but both are recorded to prevent recurrence.
