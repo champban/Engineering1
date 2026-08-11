@@ -30,6 +30,13 @@ These are always activated automatically for application work:
 
 If any mandatory asset cannot be retrieved, stop and inform the user. Do not guess.
 
+## Conditional continuity asset
+Activate this whenever Codex and Claude Code may work on the same project/working tree, or when the user requests handover/takeover:
+
+| Asset | Location | Purpose |
+|---|---|---|
+| AI Continuity Handover | `skills/ai-continuity-handover/SKILL.md` | Manual hot-swap between Codex and Claude Code using shared local state, single-writer protection and repository verification; no automatic failover |
+
 ## Mandatory pre-deploy asset
 This asset must be read and executed before approving a Preview for Production promotion and before Production deployment:
 
@@ -43,6 +50,7 @@ A missing or `BLOCKED` 6D audit is a Production stop condition.
 
 | Asset | Location | Activate when | What it improves |
 |---|---|---|---|
+| AI Continuity Handover | `skills/ai-continuity-handover/SKILL.md` | Codex + Claude Code share a project/working tree or user requests handover/takeover | Removes copy/paste handovers, prevents concurrent writers, supports manual recovery after token/session limits |
 | Project Context Template | `templates/PROJECT_CONTEXT_TEMPLATE.md` | Every new project | Continuity, decisions, deployment mapping, 6D audit and incident knowledge |
 | Project Performance KPI Template | `templates/PROJECT_PERFORMANCE_KPI_TEMPLATE.md` | Every new project and major release | Measures elapsed time, failures, rework and comparable improvement |
 | Pre-Deploy Prevention Checklist | `templates/PRE_DEPLOY_PREVENTION_CHECKLIST.md` | Any deployable app | Reduces failed deploys and skipped security checks |
@@ -51,8 +59,8 @@ A missing or `BLOCKED` 6D audit is a Production stop condition.
 | Deployment Gate Automation | `templates/DEPLOYMENT_GATE_AUTOMATION.md` | Any CI/CD app | Automates lint, typecheck, test, build and release verification |
 | Diagnostic and Status Page Spec | `templates/DIAGNOSTIC_STATUS_PAGE_SPEC.md` | Any deployed app | Faster stale deploy, environment, Auth and Supabase diagnosis |
 | Root Cause and Incident Workflow | `templates/ROOT_CAUSE_AND_INCIDENT_WORKFLOW.md` | Bug, failed deploy or production incident | Prevents random patching and repeated errors |
-| Claude Operating Template | `templates/CLAUDE.md` | Project will be edited by Claude | Enforces project-start trigger, boot sequence and stop conditions in Claude |
-| ChatGPT/Codex Operating Template | `templates/AGENTS.md` | Project will be edited by ChatGPT/Codex | Enforces project-start trigger, boot sequence and stop conditions in ChatGPT/Codex |
+| Claude Operating Template | `templates/CLAUDE.md` | Project will be edited by Claude | Enforces project-start trigger, boot sequence, continuity and stop conditions in Claude |
+| ChatGPT/Codex Operating Template | `templates/AGENTS.md` | Project will be edited by ChatGPT/Codex | Enforces project-start trigger, boot sequence, continuity and stop conditions in ChatGPT/Codex |
 | React/Vite/Supabase/Netlify Starter Overlay | `starter/react-vite-supabase-netlify/` | Accepted stack matches | Provides proven config, CI, env validation, status/diagnostics and health check |
 
 ## Project-specific assets to discover proactively
@@ -87,6 +95,9 @@ Present this before implementation:
 - AI asset registry
 - Target PROJECT_CONTEXT.md (when repo exists)
 
+### Conditionally activated
+- AI Continuity Handover when Codex and Claude Code may share the project/working tree
+
 ### Mandatory before Production
 - Web App Security 6D Audit
 
@@ -109,6 +120,7 @@ Present this before implementation:
 ### New React/Vite/Supabase/Netlify application
 Activate:
 - Mandatory global assets
+- AI Continuity Handover when both Codex and Claude Code may work on the project
 - Project Context Template
 - Project Performance KPI Template
 - Project Starter Manifest
@@ -119,10 +131,12 @@ Activate:
 - Pre-Deploy Prevention Checklist
 - Web App Security 6D Audit before production approval
 - Claude.md and AGENTS.md when both AIs may work on the project
+- `.gitignore` entry for `.ai/state.json` when AI Continuity is activated
 
 ### Existing app bug or failed deploy
 Activate:
 - Mandatory global assets
+- AI Continuity Handover when work may switch between Codex and Claude Code
 - Root Cause and Incident Workflow
 - Pre-Deploy Prevention Checklist
 - Diagnostic and Status Page Spec
@@ -154,6 +168,16 @@ For long or multi-step work:
 - Provide exact numbered manual steps, expected result and minimum non-secret evidence to return.
 - Do not delegate work that AI can safely complete through available tools.
 - Add repeated manual actions to automation backlog or a reusable checklist.
+
+## AI continuity operating rule
+When AI Continuity is activated:
+- repository files, Git and `PROJECT_CONTEXT.md` remain durable truth;
+- `.ai/state.json` is runtime-only and must not be committed;
+- only one active writer edits a working tree;
+- handover/takeover is user-controlled;
+- no automatic token monitor/failover is required;
+- the takeover AI verifies actual Git state instead of trusting the checkpoint blindly;
+- a standby AI may perform review-only inspection without taking the writer role.
 
 ## Activation confirmation rule
 When the project-start trigger is detected, ask after automatic discovery and Activation Set preparation:
