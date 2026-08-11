@@ -18,10 +18,11 @@ Before planning, coding, modifying, testing, troubleshooting or deploying this p
 5. Read `champban/Engineering1` branch `Doc` → `skills/progress-and-manual-assist/SKILL.md`.
 6. Read `champban/Engineering1` branch `Doc` → `skills/project-performance-kpi/SKILL.md`.
 7. Read `champban/Engineering1` branch `Doc` → `templates/AI_ASSET_REGISTRY.md`.
-8. Read this repo root `PROJECT_CONTEXT.md`.
-9. Confirm repository, branch, environment, Supabase project and Netlify target.
-10. Propose the Activation Set and ask whether additional project-specific agreements/assets should be activated.
-11. If any context cannot be retrieved or conflicts, stop and tell the user. Do not guess.
+8. When Claude Code and Codex may share this working tree, or the user asks for handover/takeover, read `champban/Engineering1` branch `Doc` → `skills/ai-continuity-handover/SKILL.md`.
+9. Read this repo root `PROJECT_CONTEXT.md`.
+10. Confirm repository, branch, environment, Supabase project and Netlify target.
+11. Propose the Activation Set and ask whether additional project-specific agreements/assets should be activated.
+12. If any context cannot be retrieved or conflicts, stop and tell the user. Do not guess.
 
 ## Before implementation
 - Restate the understood requirement and acceptance criteria.
@@ -30,6 +31,19 @@ Before planning, coding, modifying, testing, troubleshooting or deploying this p
 - State tests and rollback.
 - Start/update `docs/PROJECT_PERFORMANCE_KPI.md` for a new project, major feature or release.
 - Ask for confirmation when the requirement is ambiguous, destructive, security-sensitive, production-affecting or has materially different implementation options.
+
+## AI continuity: Claude Code + Codex
+When dual-AI continuity is active, follow `skills/ai-continuity-handover/SKILL.md`.
+
+- `.ai/state.json` is local ephemeral coordination state; durable decisions remain in `PROJECT_CONTEXT.md` and Git.
+- Ensure `.ai/state.json` is ignored by Git and contains no secrets or sensitive production/user data.
+- Only one active writer may modify a working tree at a time.
+- If `.ai/state.json` says Codex is `ACTIVE`, Claude stays read-only unless the user explicitly requests takeover.
+- On `handover to Codex`, checkpoint actual branch/HEAD/diff/test status, set `READY_FOR_TAKEOVER`, stop editing, and tell the user Codex can take over.
+- On explicit Claude `take over`, independently verify branch, HEAD, `git status`, diff and tests before setting Claude `ACTIVE` and continuing.
+- If the previous AI stopped because of token/session limits, explicit user takeover plus repository verification is sufficient; no prose handover is required.
+- Do not implement automatic token monitoring or automatic failover.
+- Claude may perform review-only inspection while Codex is active if the user requests independent review.
 
 ## Execution rules
 - Reuse the approved starter and proven modules before creating alternatives.
@@ -77,3 +91,4 @@ Stop and inform the user if:
 - RLS/security checks fail.
 - A destructive data change lacks backup/restore or forward-fix plan.
 - The mandatory 6D audit is missing, blocked or invalid for the candidate commit.
+- Another AI is the active writer in the same working tree and the user has not explicitly authorized takeover.
