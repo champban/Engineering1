@@ -25,17 +25,20 @@ These are always activated automatically for application work:
 | Fast and safe bootstrap skill | `skills/project-fast-safe-bootstrap/SKILL.md` | Reuse-first project setup and standardized execution workflow |
 | Progress and manual assist skill | `skills/progress-and-manual-assist/SKILL.md` | Percentage progress updates and exact user-side acceleration steps |
 | Project performance KPI skill | `skills/project-performance-kpi/SKILL.md` | Comparable milestone timing and verified efficiency measurement |
+| Productivity AIs parallel continuity skill | `skills/productivity-ais-parallel-continuity/SKILL.md` | Parallel-first lane isolation, capability-based ownership, cross-review, token/session-aware checkpoints, failover/recovery and Owner P'Boy control |
 | AI asset registry | `templates/AI_ASSET_REGISTRY.md` | Inventory and activation rules |
 | Target project context | Target repo root `PROJECT_CONTEXT.md` | Project-specific architecture, decisions, status, incidents and deploy mapping |
 
 If any mandatory asset cannot be retrieved, stop and inform the user. Do not guess.
 
 ## Conditional continuity asset
-Activate this whenever Codex and Claude Code may work on the same project/working tree, or when the user requests handover/takeover:
+Activate this whenever Codex and Claude Code may share the same working tree, or when the user requests handover/takeover inside one working tree:
 
 | Asset | Location | Purpose |
 |---|---|---|
-| AI Continuity Handover | `skills/ai-continuity-handover/SKILL.md` | Manual hot-swap between Codex and Claude Code using shared local state, single-writer protection and repository verification; no automatic failover |
+| AI Continuity Handover | `skills/ai-continuity-handover/SKILL.md` | Safe same-worktree hot-swap using local state, single-writer protection, Git verification and graceful/recovery handover |
+
+The mandatory Productivity AIs skill controls cross-worktree parallel lanes. The AI Continuity Handover skill controls one-working-tree writer transfer.
 
 ## Mandatory pre-deploy asset
 This asset must be read and executed before approving a Preview for Production promotion and before Production deployment:
@@ -50,7 +53,8 @@ A missing or `BLOCKED` 6D audit is a Production stop condition.
 
 | Asset | Location | Activate when | What it improves |
 |---|---|---|---|
-| AI Continuity Handover | `skills/ai-continuity-handover/SKILL.md` | Codex + Claude Code share a project/working tree or user requests handover/takeover | Removes copy/paste handovers, prevents concurrent writers, supports manual recovery after token/session limits |
+| Productivity AIs Parallel Continuity | `skills/productivity-ais-parallel-continuity/SKILL.md` | Every application project where Codex and/or Claude may implement, review or take over | Faster parallel delivery, conflict prevention, independent review and recovery from capacity/session failure |
+| AI Continuity Handover | `skills/ai-continuity-handover/SKILL.md` | Codex + Claude Code share one working tree or user requests handover/takeover | Prevents concurrent writers and supports verified same-tree transfer/recovery |
 | Project Context Template | `templates/PROJECT_CONTEXT_TEMPLATE.md` | Every new project | Continuity, decisions, deployment mapping, 6D audit and incident knowledge |
 | Project Performance KPI Template | `templates/PROJECT_PERFORMANCE_KPI_TEMPLATE.md` | Every new project and major release | Measures elapsed time, failures, rework and comparable improvement |
 | Pre-Deploy Prevention Checklist | `templates/PRE_DEPLOY_PREVENTION_CHECKLIST.md` | Any deployable app | Reduces failed deploys and skipped security checks |
@@ -59,8 +63,8 @@ A missing or `BLOCKED` 6D audit is a Production stop condition.
 | Deployment Gate Automation | `templates/DEPLOYMENT_GATE_AUTOMATION.md` | Any CI/CD app | Automates lint, typecheck, test, build and release verification |
 | Diagnostic and Status Page Spec | `templates/DIAGNOSTIC_STATUS_PAGE_SPEC.md` | Any deployed app | Faster stale deploy, environment, Auth and Supabase diagnosis |
 | Root Cause and Incident Workflow | `templates/ROOT_CAUSE_AND_INCIDENT_WORKFLOW.md` | Bug, failed deploy or production incident | Prevents random patching and repeated errors |
-| Claude Operating Template | `templates/CLAUDE.md` | Project will be edited by Claude | Enforces project-start trigger, boot sequence, continuity and stop conditions in Claude |
-| ChatGPT/Codex Operating Template | `templates/AGENTS.md` | Project will be edited by ChatGPT/Codex | Enforces project-start trigger, boot sequence, continuity and stop conditions in ChatGPT/Codex |
+| Claude Operating Template | `templates/CLAUDE.md` | Project will be edited by Claude | Enforces project-start trigger, boot sequence, parallel ownership, continuity and stop conditions in Claude |
+| ChatGPT/Codex Operating Template | `templates/AGENTS.md` | Project will be edited by ChatGPT/Codex | Enforces project-start trigger, boot sequence, parallel ownership, continuity and stop conditions in ChatGPT/Codex |
 | React/Vite/Supabase/Netlify Starter Overlay | `starter/react-vite-supabase-netlify/` | Accepted stack matches | Provides proven config, CI, env validation, status/diagnostics and health check |
 
 ## Project-specific assets to discover proactively
@@ -92,11 +96,12 @@ Present this before implementation:
 - Fast-safe bootstrap skill
 - Progress and manual assist skill
 - Project performance KPI skill
+- Productivity AIs parallel continuity skill
 - AI asset registry
 - Target PROJECT_CONTEXT.md (when repo exists)
 
 ### Conditionally activated
-- AI Continuity Handover when Codex and Claude Code may share the project/working tree
+- AI Continuity Handover when Codex and Claude Code may share one working tree or the user requests takeover/handover
 
 ### Mandatory before Production
 - Web App Security 6D Audit
@@ -108,6 +113,8 @@ Present this before implementation:
 - [document]: [what it controls]
 
 ### Decisions requiring confirmation
+- Task classification: PARALLEL_SAFE / PARALLEL_WITH_CONTRACT / SEQUENTIAL_ONLY
+- Lane ownership and common base SHA:
 - Stack/starter choice:
 - Branch strategy:
 - Database/Auth:
@@ -119,8 +126,8 @@ Present this before implementation:
 
 ### New React/Vite/Supabase/Netlify application
 Activate:
-- Mandatory global assets
-- AI Continuity Handover when both Codex and Claude Code may work on the project
+- Mandatory global assets, including Productivity AIs Parallel Continuity
+- AI Continuity Handover when both agents may share one working tree
 - Project Context Template
 - Project Performance KPI Template
 - Project Starter Manifest
@@ -132,11 +139,13 @@ Activate:
 - Web App Security 6D Audit before production approval
 - Claude.md and AGENTS.md when both AIs may work on the project
 - `.gitignore` entry for `.ai/state.json` when AI Continuity is activated
+- parallel lane branches/worktrees and contract/file ownership records when task classification allows parallel work
 
 ### Existing app bug or failed deploy
 Activate:
-- Mandatory global assets
-- AI Continuity Handover when work may switch between Codex and Claude Code
+- Mandatory global assets, including Productivity AIs Parallel Continuity
+- `SEQUENTIAL_ONLY` by default until root cause is confirmed
+- AI Continuity Handover when work may switch agents in one working tree
 - Root Cause and Incident Workflow
 - Pre-Deploy Prevention Checklist
 - Diagnostic and Status Page Spec
@@ -146,6 +155,7 @@ Activate:
 ### Supabase Auth/RLS/data change
 Activate:
 - Mandatory global assets
+- `SEQUENTIAL_ONLY` unless independent schema/policy lanes are proven safe
 - Permission Matrix in target project context
 - Root Cause workflow for defects
 - Backup/restore plan
@@ -155,6 +165,7 @@ Activate:
 ### UI-only change with no data/security/deployment impact
 Activate:
 - Mandatory global assets
+- `PARALLEL_SAFE` or `PARALLEL_WITH_CONTRACT` when UI and core logic have clear ownership boundaries
 - Project design system/UI specification
 - Relevant acceptance criteria
 - Still use Preview and production build when deployable code changes
@@ -169,15 +180,28 @@ For long or multi-step work:
 - Do not delegate work that AI can safely complete through available tools.
 - Add repeated manual actions to automation backlog or a reusable checklist.
 
-## AI continuity operating rule
-When AI Continuity is activated:
+## Productivity AIs operating rule
+When Productivity AIs Parallel Continuity is active:
+- P'Boy has final authority to pause, stop, resume, switch or reassign either AI;
+- parallel execution is the default only when the task is classified safe;
+- parallel lanes use the same base SHA but separate branches/worktrees;
+- contracts and file ownership are locked before concurrent writing;
+- one active writer is allowed per worktree and per owned file/lane;
+- Codex and Claude cross-review each other's owned implementation;
+- agents checkpoint status at meaningful milestones and before capacity/session failure;
+- agents never claim an exact remaining-token/quota percentage without telemetry;
+- a recovered agent returns as AVAILABLE/STANDBY and cannot reclaim a lane automatically;
+- Production and destructive gates remain Owner-controlled.
+
+## Same-working-tree continuity rule
+When AI Continuity Handover is activated:
 - repository files, Git and `PROJECT_CONTEXT.md` remain durable truth;
 - `.ai/state.json` is runtime-only and must not be committed;
-- only one active writer edits a working tree;
-- handover/takeover is user-controlled;
-- no automatic token monitor/failover is required;
-- the takeover AI verifies actual Git state instead of trusting the checkpoint blindly;
-- a standby AI may perform review-only inspection without taking the writer role.
+- only one active writer edits one working tree;
+- takeover verifies actual Git state instead of trusting the checkpoint blindly;
+- a standby AI may perform review-only inspection without taking the writer role;
+- browser-panel wake-up may require one exact manual prompt from P'Boy;
+- approved external orchestration may automate heartbeat/leases/failover, but must not create overlapping writers.
 
 ## Activation confirmation rule
 When the project-start trigger is detected, ask after automatic discovery and Activation Set preparation:
@@ -189,6 +213,6 @@ Do not ask whether mandatory files should be read. If the user is unsure, recomm
 ## Registry maintenance
 Whenever a reusable skill, template, starter, checklist or standard is created, renamed or deprecated:
 - Update this registry in the same logical change.
-- Update links in the boot sequence.
-- Record the decision in global/project context.
+- Update links in the boot sequence and operating templates.
+- Record the decision in global/project context or the new durable policy itself.
 - State whether the asset is mandatory, recommended or optional.
